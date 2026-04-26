@@ -622,8 +622,10 @@ function updateGaugeUI() {
   const arrow = nf?.trend ? (arrows[nf.trend] || '') : '';
   const txt = g ? `${g.cfs} cfs${arrow}` : '—';
 
-  document.getElementById('gval')        ?.textContent = txt;
-  document.getElementById('gauge-panel') ?.textContent = txt;
+  const gvalEl = document.getElementById('gval');
+  const gpEl   = document.getElementById('gauge-panel');
+  if (gvalEl) gvalEl.textContent = txt;
+  if (gpEl)   gpEl.textContent   = txt;
 
   // Populate NOAA daily forecast rows in the info panel
   const fc = document.getElementById('noaa-forecast-rows');
