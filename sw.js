@@ -66,11 +66,12 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Map tiles (arcgisonline, openstreetmap, or local /tiles/) — cache first
+  // Map tiles — cache first (builds offline map as user browses)
   if (
     url.pathname.includes('/tiles/') ||
     url.hostname.includes('arcgisonline.com') ||
-    url.hostname.includes('tile.openstreetmap.org')
+    url.hostname.includes('tile.openstreetmap.org') ||
+    url.hostname.includes('opentopomap.org')
   ) {
     event.respondWith(cacheFirstTile(event.request));
     return;

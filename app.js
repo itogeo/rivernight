@@ -16,9 +16,6 @@ const RIVERS = {
     totalMiles: 47.9,
     putIn:   { lat: 46.0747, lon: -115.2153, name: 'Paradise Launch Site' },
     takeOut: { lat: 46.0958, lon: -115.8342, name: 'Race Creek Takeout' },
-    // Tile download corridor
-    tileBbox: { w: -115.90, s: 45.97, e: -115.10, n: 46.18 },
-    tileZooms: [11, 12, 13, 14, 15],
     gaugeUrl: 'https://waterservices.usgs.gov/nwis/iv/?format=json&sites=13336500&parameterCd=00060&siteStatus=all',
     noaaUrl:  'https://api.water.noaa.gov/nwps/v1/gauges/seli1/stageflow',
     dataFiles: {
@@ -143,65 +140,51 @@ function setStatus(html) {
 async function runLoadSequence() {
   const rv = S.river;
 
-  // ── Stage 0: River centerline ────────────────────────
+  // ── Stage 0: River centerline (bundled GeoJSON) ──────
   setStage(0, 'active');
-  setStageSub(0, 'Fetching from server…');
+  setStageSub(0, 'Reading bundled data…');
   setStatus('Loading river centerline…');
   setProgress(0, 'River data');
-
-  await delay(300); // let animation play
   const riverOk = await loadRiverData();
   setStage(0, 'done');
   setStageSub(0, riverOk ? `${S.riverCoords.length} nodes loaded` : 'Using estimated line');
-  setProgress(18, 'River data ✓');
-  await delay(200);
+  setProgress(28, 'River data ✓');
 
-  // ── Stage 1: POIs ────────────────────────────────────
+  // ── Stage 1: POIs (bundled GeoJSON) ─────────────────
   setStage(1, 'active');
   setStageSub(1, 'Loading rapids & camps…');
-  setStatus('Parsing 27 rapids & camps…');
-
-  await delay(200);
+  setStatus('Parsing rapids & camps…');
   const poisOk = await loadPOIData();
   setStage(1, 'done');
   const rapidCount = S.pois.filter(f => f.properties.type === 'rapid').length;
   const campCount  = S.pois.filter(f => f.properties.type === 'camp').length;
   setStageSub(1, `${rapidCount} rapids · ${campCount} camps`);
-  setProgress(32, 'Points of interest ✓');
-  await delay(200);
+  setProgress(55, 'Points of interest ✓');
 
   // ── Stage 2: USGS gauge + NOAA forecast ─────────────
   setStage(2, 'active');
   setStageSub(2, 'Fetching flow & NOAA forecast…');
   setStatus('Checking USGS gauge and NOAA discharge forecast…');
-
   const [gauge, noaaFc] = await Promise.all([fetchGaugeData(), fetchNOAAForecast()]);
   setStage(2, 'done');
   const trendArrow = noaaFc?.trend === 'rising' ? ' ↑' : noaaFc?.trend === 'falling' ? ' ↓' : '';
   setStageSub(2, gauge ? `${gauge.cfs} cfs${trendArrow}` : 'Offline — will retry');
-  setProgress(42, 'Flow data ✓');
-  await delay(200);
+  setProgress(82, 'Flow data ✓');
 
-  // ── Stage 3: Tiles ───────────────────────────────────
+  // ── Stage 3: Activate offline caching ───────────────
+  // Satellite tiles download passively as you browse — no bulk download needed
   setStage(3, 'active');
-  setStageSub(3, 'Counting tiles…');
-  setStatus('Building offline tile cache…');
-
-  const tileUrls = generateTileUrls(rv);
-  setStageSub(3, `${tileUrls.length} tiles to cache`);
-  setStatus(`Caching <strong>${tileUrls.length}</strong> satellite tiles — keep screen on…`);
-
-  await cacheTilesWithProgress(tileUrls, 42, 98);
+  setStageSub(3, 'Tiles load & cache as you browse');
+  setStatus('Activating offline mode…');
+  await delay(350);
   setStage(3, 'done');
-  setStageSub(3, `${tileUrls.length} tiles ready offline`);
+  setStageSub(3, 'Offline service worker active');
   setProgress(100, 'All done!');
 
   // ── Done ─────────────────────────────────────────────
   localStorage.setItem('rg_cached_river', rv.id);
-  localStorage.setItem(`rg_tile_count_${rv.id}`, tileUrls.length);
   setStatus('<strong>Ready!</strong> Launching map…');
-
-  await delay(900);
+  await delay(700);
   launchMap();
 }
 
@@ -337,74 +320,6 @@ async function fetchNOAAForecast() {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-// TILE CACHING
-// ─────────────────────────────────────────────────────────
-function deg2tile(lat, lon, z) {
-  const lr = lat * Math.PI / 180;
-  const n = Math.pow(2, z);
-  return [
-    Math.floor((lon + 180) / 360 * n),
-    Math.floor((1 - Math.log(Math.tan(lr) + 1 / Math.cos(lr)) / Math.PI) / 2 * n),
-  ];
-}
-
-function generateTileUrls(rv) {
-  const { w, s, e, n } = rv.tileBbox;
-  const urls = [];
-  const base = TILE_SOURCES.satellite.url;
-
-  for (const z of rv.tileZooms) {
-    const [xMin, yMax] = deg2tile(s, w, z);
-    const [xMax, yMin] = deg2tile(n, e, z);
-    for (let x = xMin; x <= xMax; x++) {
-      for (let y = yMin; y <= yMax; y++) {
-        urls.push(base.replace('{z}', z).replace('{y}', y).replace('{x}', x));
-      }
-    }
-  }
-  return urls;
-}
-
-async function cacheTilesWithProgress(urls, pctStart, pctEnd) {
-  // Use Service Worker message channel for background caching
-  const sw = navigator.serviceWorker?.controller;
-  if (sw) {
-    return new Promise(resolve => {
-      const ch = new MessageChannel();
-      ch.port1.onmessage = (ev) => {
-        if (ev.data?.type === 'PRECACHE_PROGRESS') {
-          const frac = ev.data.done / ev.data.total;
-          const pct = pctStart + frac * (pctEnd - pctStart);
-          setProgress(pct, `Caching tiles ${ev.data.done}/${ev.data.total}`);
-          setStageSub(3, `${ev.data.done} / ${ev.data.total} tiles`);
-        }
-        if (ev.data?.type === 'PRECACHE_DONE') resolve();
-      };
-      sw.postMessage({ type: 'PRECACHE_TILES', urls }, [ch.port2]);
-    });
-  }
-
-  // Fallback: fetch tiles directly (slower, but works without SW)
-  const cache = await caches.open('selway-tiles-v1.0.0');
-  const BATCH = 8;
-  for (let i = 0; i < urls.length; i += BATCH) {
-    const batch = urls.slice(i, i + BATCH);
-    await Promise.allSettled(batch.map(async (url) => {
-      if (await cache.match(url)) return; // already cached
-      try {
-        const r = await fetch(url);
-        if (r.ok) await cache.put(url, r);
-      } catch {}
-    }));
-    const done = Math.min(i + BATCH, urls.length);
-    const frac = done / urls.length;
-    const pct = pctStart + frac * (pctEnd - pctStart);
-    setProgress(pct, `Caching tiles ${done}/${urls.length}`);
-    setStageSub(3, `${done} / ${urls.length} tiles`);
-    await delay(0); // yield to browser
-  }
-}
 
 // ─────────────────────────────────────────────────────────
 // LAUNCH MAP
