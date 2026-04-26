@@ -1,0 +1,27 @@
+{
+  "type": "FeatureCollection",
+  "features": [{
+    "type": "Feature",
+    "properties": {
+      "name": "Selway River",
+      "source": "placeholder — replace with output from scripts/download_river.py",
+      "vertex_miles": [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 47.9]
+    },
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [-115.2153, 46.0747],
+        [-115.2850, 46.0780],
+        [-115.3550, 46.0730],
+        [-115.4250, 46.0710],
+        [-115.4950, 46.0760],
+        [-115.5600, 46.0800],
+        [-115.6250, 46.0830],
+        [-115.6850, 46.0870],
+        [-115.7450, 46.0900],
+        [-115.8000, 46.0930],
+        [-115.8342, 46.0958]
+      ]
+    }
+  }]
+}

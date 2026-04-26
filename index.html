@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="River Guide" />
+  <meta name="theme-color" content="#0e1a13" />
+  <title>River Guide</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --ink:       #0e1a13;
+      --bark:      #1c2b1f;
+      --moss:      #2a3f2e;
+      --lichen:    #3d5c43;
+      --sage:      #7a9e7e;
+      --mist:      #c4d9c7;
+      --paper:     #eef5ee;
+      --amber:     #d4820a;
+      --amber-lt:  #f0a830;
+      --water:     #5ba8c4;
+      --water-lt:  #8ecde0;
+      --rapid-c:   #c44a2a;
+      --danger:    #b83232;
+      --safe-top:  env(safe-area-inset-top,    0px);
+      --safe-bot:  env(safe-area-inset-bottom, 0px);
+      --fh: 'Syne', sans-serif;
+      --fm: 'IBM Plex Mono', monospace;
+      --r: 12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; width: 100%; overflow: hidden;
+      background: var(--ink); color: var(--paper);
+      font-family: var(--fh);
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .screen {
+      position: fixed; inset: 0; z-index: 10;
+      transition: opacity .4s ease, transform .4s ease;
+    }
+    .screen.hidden { opacity: 0; pointer-events: none; transform: scale(.97); }
+
+    /* ══════════════════════════════════════════════
+       SCREEN 1 — SELECT
+    ══════════════════════════════════════════════ */
+    #screen-select {
+      background: var(--ink);
+      display: flex; flex-direction: column;
+      padding: calc(var(--safe-top) + 48px) 24px calc(var(--safe-bot) + 36px);
+      gap: 0;
+      justify-content: space-between;
+    }
+    #screen-select::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        repeating-linear-gradient(0deg,  transparent, transparent 47px, rgba(61,92,67,.14) 47px, rgba(61,92,67,.14) 48px),
+        repeating-linear-gradient(90deg, transparent, transparent 47px, rgba(61,92,67,.07) 47px, rgba(61,92,67,.07) 48px);
+    }
+    #screen-select > * { position: relative; z-index: 1; }
+
+    .wordmark { margin-bottom: 36px; }
+    .wordmark-eyebrow {
+      font-family: var(--fm); font-size: 10px;
+      letter-spacing: .2em; color: var(--sage);
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .wordmark-h1 {
+      font-size: 34px; font-weight: 900; line-height: 1;
+      color: var(--paper); letter-spacing: -.01em;
+    }
+    .wordmark-h1 em { font-style: normal; color: var(--amber-lt); }
+
+    .river-card {
+      background: var(--bark);
+      border: 1.5px solid var(--lichen);
+      border-radius: 18px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .2s, transform .15s;
+      margin-bottom: 20px;
+    }
+    .river-card:active { transform: scale(.985); border-color: var(--amber); }
+
+    .card-hero {
+      padding: 22px 20px 18px;
+      background: linear-gradient(140deg, #1f3528 0%, #162419 100%);
+      position: relative; overflow: hidden;
+    }
+    .card-hero::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 44px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 44'%3E%3Cpath d='M0 22 Q50 8 100 22 Q150 36 200 22 Q250 8 300 22 Q350 36 400 22' stroke='%235ba8c4' stroke-width='2.5' fill='none' opacity='.4'/%3E%3Cpath d='M0 32 Q50 18 100 32 Q150 44 200 32 Q250 18 300 32 Q350 44 400 32' stroke='%238ecde0' stroke-width='1.2' fill='none' opacity='.22'/%3E%3C/svg%3E") center/cover no-repeat;
+    }
+    .card-state-badge {
+      position: absolute; top: 18px; right: 18px;
+      background: rgba(61,92,67,.7);
+      border: 1px solid var(--sage);
+      border-radius: 14px;
+      padding: 3px 10px;
+      font-family: var(--fm); font-size: 9px;
+      color: var(--mist); letter-spacing: .1em;
+    }
+    .card-name {
+      font-size: 28px; font-weight: 900;
+      color: var(--paper); line-height: 1;
+    }
+    .card-region {
+      font-family: var(--fm); font-size: 10px;
+      color: var(--sage); margin-top: 5px; letter-spacing: .07em;
+    }
+
+    .card-stats {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px; background: var(--moss);
+    }
+    .stat {
+      background: var(--bark); padding: 13px 10px;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .stat-lbl { font-family: var(--fm); font-size: 9px; letter-spacing: .12em; color: var(--sage); text-transform: uppercase; }
+    .stat-val { font-size: 19px; font-weight: 900; color: var(--paper); line-height: 1; }
+    .stat-unit { font-family: var(--fm); font-size: 9px; color: var(--lichen); }
+
+    .card-foot {
+      padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid var(--moss);
+    }
+    .card-cta { font-size: 13px; font-weight: 700; color: var(--amber-lt); }
+    .card-arrow {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--amber); color: var(--ink);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 900;
+      transition: background .15s;
+    }
+    .river-card:active .card-arrow { background: var(--amber-lt); }
+
+    .returning-msg {
+      font-family: var(--fm); font-size: 11px; color: var(--sage);
+      text-align: center; line-height: 1.7;
+      display: none; margin-bottom: 16px;
+    }
+    .returning-msg strong { color: var(--water-lt); }
+
+    .footer-note {
+      font-family: var(--fm); font-size: 10px;
+      color: var(--lichen); text-align: center;
+      letter-spacing: .07em;
+    }
+
+    /* ══════════════════════════════════════════════
+       SCREEN 2 — LOADING
+    ══════════════════════════════════════════════ */
+    #screen-loading {
+      background: var(--ink);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: calc(var(--safe-top) + 20px) 28px calc(var(--safe-bot) + 28px);
+    }
+    #screen-loading::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 90% 70% at 50% 50%, var(--bark) 0%, var(--ink) 75%);
+    }
+    #load-inner {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 340px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 26px;
+    }
+
+    .flow-svg {
+      width: 100%; height: 60px;
+      overflow: visible;
+    }
+    .fp1 {
+      stroke-dasharray: 700; stroke-dashoffset: 700;
+      animation: draw 2s ease forwards;
+    }
+    .fp2 {
+      stroke-dasharray: 700; stroke-dashoffset: 700;
+      animation: draw 2.4s .25s ease forwards;
+    }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+
+    .load-title { text-align: center; }
+    .load-title h2 { font-size: 26px; font-weight: 900; color: var(--paper); }
+    .load-title p  { font-family: var(--fm); font-size: 11px; color: var(--sage); margin-top: 5px; letter-spacing: .05em; }
+
+    .stages { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+    .stage {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 13px;
+      background: var(--bark); border: 1px solid var(--moss);
+      border-radius: var(--r);
+      transition: border-color .3s, background .3s;
+    }
+    .stage.s-active { border-color: var(--amber); background: rgba(212,130,10,.07); }
+    .stage.s-done   { border-color: var(--lichen); }
+    .s-ico {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--moss); border: 1.5px solid var(--lichen);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; flex-shrink: 0;
+      transition: all .3s;
+    }
+    .stage.s-active .s-ico {
+      background: var(--amber); border-color: var(--amber-lt);
+      animation: ico-pulse 1.1s ease infinite;
+    }
+    .stage.s-done .s-ico { background: var(--lichen); border-color: var(--sage); }
+    @keyframes ico-pulse {
+      0%,100% { transform: scale(1); }
+      50%      { transform: scale(1.12); }
+    }
+    .s-text { flex: 1; }
+    .s-name { font-size: 13px; font-weight: 700; color: var(--mist); line-height: 1.2; }
+    .s-sub  { font-family: var(--fm); font-size: 10px; color: var(--sage); margin-top: 2px; }
+    .stage.s-active .s-sub { color: var(--amber-lt); }
+    .s-check { font-size: 13px; color: var(--sage); opacity: 0; transition: opacity .3s; }
+    .stage.s-done .s-check { opacity: 1; }
+
+    .prog-wrap { width: 100%; }
+    .prog-track { height: 4px; background: var(--moss); border-radius: 2px; overflow: hidden; }
+    .prog-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--amber), var(--amber-lt));
+      border-radius: 2px; width: 0%;
+      transition: width .6s ease;
+    }
+    .prog-label {
+      display: flex; justify-content: space-between;
+      font-family: var(--fm); font-size: 10px; color: var(--sage);
+      margin-top: 6px;
+    }
+
+    .load-status {
+      font-family: var(--fm); font-size: 11px;
+      color: var(--sage); text-align: center; min-height: 1.5em;
+    }
+    .load-status strong { color: var(--water-lt); }
+
+    /* ══════════════════════════════════════════════
+       SCREEN 3 — MAP
+    ══════════════════════════════════════════════ */
+    #screen-map { z-index: 1; background: var(--ink); }
+    #map { position: absolute; inset: 0; }
+
+    .leaflet-control-zoom a {
+      background: rgba(14,26,19,.9) !important;
+      color: var(--mist) !important;
+      border-color: var(--moss) !important;
+    }
+    .leaflet-control-attribution {
+      font-size: 8px !important;
+      background: rgba(0,0,0,.4) !important;
+      color: rgba(255,255,255,.35) !important;
+    }
+
+    /* top bar */
+    #top-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      padding: calc(var(--safe-top) + 10px) 12px 10px;
+      background: linear-gradient(to bottom, rgba(14,26,19,.95) 60%, transparent);
+      display: flex; align-items: center; gap: 10px;
+      pointer-events: none;
+    }
+    #top-bar > * { pointer-events: auto; }
+    .top-btn {
+      width: 40px; height: 40px;
+      background: rgba(28,43,31,.92); border: 1px solid var(--moss);
+      border-radius: 10px; color: var(--mist); font-size: 18px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background .15s;
+    }
+    .top-btn:active { background: var(--moss); }
+    #top-info { flex: 1; min-width: 0; }
+    #top-rname {
+      font-size: 15px; font-weight: 800; color: var(--paper);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    #top-gauge {
+      font-family: var(--fm); font-size: 11px; color: var(--sage); margin-top: 1px;
+    }
+    .gv { color: var(--water-lt); font-weight: 600; }
+    #mile-pill {
+      display: none;
+      background: rgba(14,26,19,.92); border: 1px solid var(--amber);
+      border-radius: 20px; padding: 4px 12px;
+      font-family: var(--fm); font-size: 12px; color: var(--amber-lt);
+      white-space: nowrap;
+    }
+
+    /* bottom bar */
+    #bot-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+      padding: 12px 12px calc(var(--safe-bot) + 14px);
+      background: linear-gradient(to top, rgba(14,26,19,.97) 55%, transparent);
+      display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none;
+    }
+    #bot-bar > * { pointer-events: auto; }
+
+    #measure-result {
+      display: none;
+      background: rgba(28,43,31,.97); border: 1.5px solid var(--amber);
+      border-radius: var(--r); padding: 12px 14px;
+    }
+    .mr-row { display: flex; align-items: center; justify-content: space-between; }
+    .mr-mi { font-size: 22px; font-weight: 900; color: var(--amber-lt); }
+    .mr-x {
+      background: none; border: none; color: var(--sage);
+      font-size: 18px; cursor: pointer; padding: 2px 6px;
+    }
+    .mr-time { font-family: var(--fm); font-size: 11px; color: var(--sage); margin: 3px 0 6px; }
+    .mr-between { font-family: var(--fm); font-size: 11px; color: var(--mist); line-height: 1.6; }
+    .mr-between span { color: var(--sage); }
+
+    #layer-row { display: flex; gap: 6px; }
+    .lchip {
+      flex: 1; padding: 7px 4px;
+      background: rgba(28,43,31,.88); border: 1px solid var(--moss);
+      border-radius: 8px; color: var(--sage);
+      font-family: var(--fh); font-size: 12px; font-weight: 700;
+      cursor: pointer; text-align: center; transition: all .15s;
+    }
+    .lchip.active {
+      background: rgba(91,168,196,.15); border-color: var(--water); color: var(--water-lt);
+    }
+
+    #filter-row { display: flex; gap: 6px; }
+    .fchip {
+      flex: 1; padding: 6px 4px;
+      background: rgba(28,43,31,.88); border: 1px solid var(--moss);
+      border-radius: 8px; color: var(--sage);
+      font-family: var(--fh); font-size: 11px; font-weight: 700;
+      cursor: pointer; text-align: center; transition: all .15s;
+    }
+    .fchip[data-poi="rapid"].active { border-color: var(--rapid-c); color: #e07060; background: rgba(196,74,42,.12); }
+    .fchip[data-poi="camp"].active  { border-color: var(--water); color: var(--water-lt); background: rgba(91,168,196,.12); }
+    .fchip[data-poi="poi"].active   { border-color: var(--sage); color: var(--mist); background: rgba(122,158,126,.1); }
+
+    #action-row { display: flex; gap: 8px; }
+    .abtn {
+      flex: 1; padding: 13px 8px;
+      background: rgba(28,43,31,.92); border: 1px solid var(--moss);
+      border-radius: var(--r); color: var(--mist);
+      font-family: var(--fh); font-size: 12px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all .15s; letter-spacing: .03em;
+    }
+    .abtn:active { transform: scale(.97); }
+    .abtn.active { background: rgba(91,168,196,.18); border-color: var(--water); color: var(--water-lt); }
+    #measure-btn.active { background: rgba(212,130,10,.18); border-color: var(--amber); color: var(--amber-lt); }
+
+    /* panel */
+    #panel {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: min(320px, 90vw); z-index: 200;
+      background: var(--bark); border-right: 1px solid var(--moss);
+      transform: translateX(-100%);
+      transition: transform .3s cubic-bezier(.4,0,.2,1);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    #panel.open { transform: translateX(0); }
+    #scrim {
+      position: fixed; inset: 0; background: rgba(0,0,0,.55);
+      z-index: 199; display: none; backdrop-filter: blur(2px);
+    }
+    #panel.open ~ #scrim { display: block; }
+    #ph {
+      padding: calc(var(--safe-top) + 16px) 16px 14px;
+      background: var(--moss); border-bottom: 1px solid var(--lichen);
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    #ph h2 { font-size: 20px; font-weight: 900; color: var(--paper); }
+    #ph p { font-family: var(--fm); font-size: 10px; color: var(--sage); margin-top: 3px; letter-spacing: .05em; }
+    #pclose {
+      background: none; border: none; color: var(--sage);
+      font-size: 22px; cursor: pointer; line-height: 1;
+    }
+    .tab-bar { display: flex; background: var(--bark); border-bottom: 1px solid var(--moss); }
+    .tabbtn {
+      flex: 1; padding: 11px 6px; background: none;
+      border: none; border-bottom: 2px solid transparent;
+      color: var(--sage); font-family: var(--fh); font-size: 11px; font-weight: 700;
+      cursor: pointer; letter-spacing: .06em; text-transform: uppercase; transition: all .15s;
+    }
+    .tabbtn.active { color: var(--amber-lt); border-bottom-color: var(--amber); }
+    #pb { flex: 1; overflow-y: auto; }
+    .tpane { display: none; padding: 14px; }
+    .tpane.active { display: block; }
+
+    .icard {
+      background: var(--ink); border: 1px solid var(--moss);
+      border-radius: var(--r); padding: 13px; margin-bottom: 12px;
+    }
+    .icard-ttl {
+      font-family: var(--fm); font-size: 9px; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--amber-lt); margin-bottom: 9px;
+    }
+    .irow {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 5px 0; border-bottom: 1px solid var(--moss);
+      font-size: 13px;
+    }
+    .irow:last-child { border-bottom: none; }
+    .ilbl { color: var(--sage); }
+    .ival { font-family: var(--fm); font-size: 12px; color: var(--mist); font-weight: 600; }
+    .permit-banner {
+      background: rgba(196,74,42,.1); border: 1px solid rgba(196,74,42,.35);
+      border-radius: 8px; padding: 11px 13px; font-size: 12px;
+      color: #e08070; line-height: 1.55; margin-bottom: 12px;
+    }
+
+    .poi-list { display: flex; flex-direction: column; gap: 6px; }
+    .prow {
+      display: flex; gap: 10px; padding: 10px;
+      background: var(--ink); border: 1px solid var(--moss);
+      border-radius: 8px; cursor: pointer; transition: border-color .15s;
+    }
+    .prow:active { border-color: var(--amber); }
+    .pmile { font-family: var(--fm); font-size: 10px; color: var(--sage); min-width: 42px; padding-top: 2px; }
+    .pname { font-size: 13px; font-weight: 700; color: var(--mist); line-height: 1.2; }
+    .pdesc { font-size: 11px; color: var(--sage); line-height: 1.45; margin-top: 3px; }
+    .dpill {
+      display: inline-block; font-family: var(--fm); font-size: 10px; font-weight: 600;
+      padding: 1px 7px; border-radius: 4px; color: #fff; margin-top: 4px;
+    }
+
+    /* markers */
+    .mk { width:30px; height:30px; border-radius:50%; background:var(--bark); display:flex; align-items:center; justify-content:center; font-size:13px; box-shadow:0 2px 8px rgba(0,0,0,.5); cursor:pointer; }
+    .mk-rapid { border: 2px solid var(--rapid-c); }
+    .mk-camp  { border: 2px solid var(--water); }
+    .mk-poi   { border: 2px solid var(--sage); width:28px; height:28px; }
+    .mk-access { border-radius:8px; background:rgba(42,63,46,.95); border:2px solid var(--amber); width:32px; height:32px; font-size:14px; }
+
+    .gps-wrap { width:20px; height:20px; position:relative; display:flex; align-items:center; justify-content:center; }
+    .gps-core { width:12px; height:12px; background:var(--water-lt); border:2px solid #fff; border-radius:50%; position:absolute; box-shadow:0 0 8px rgba(142,205,224,.8); }
+    .gps-ring { position:absolute; inset:0; border:2px solid var(--water); border-radius:50%; animation:gpsp 2s ease-out infinite; }
+    @keyframes gpsp { 0%{transform:scale(.7);opacity:1} 100%{transform:scale(2.4);opacity:0} }
+    .mpt { width:26px; height:26px; background:var(--amber-lt); color:var(--ink); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.5); }
+
+    .leaflet-popup-content-wrapper { background:var(--bark)!important; border:1px solid var(--lichen)!important; border-radius:var(--r)!important; box-shadow:0 4px 20px rgba(0,0,0,.55)!important; }
+    .leaflet-popup-tip { background:var(--bark)!important; }
+    .leaflet-popup-content { margin:0!important; }
+    .pp { padding:12px 14px; }
+    .pp-mile { font-family:var(--fm); font-size:10px; color:var(--sage); margin-bottom:2px; }
+    .pp-name { font-size:15px; font-weight:900; color:var(--paper); margin-bottom:5px; }
+    .pp-desc { font-size:12px; color:var(--sage); line-height:1.5; }
+    .leaflet-popup-close-button { color:var(--sage)!important; font-size:18px!important; top:6px!important; right:8px!important; }
+
+    /* toast */
+    #toast {
+      position:fixed; top:calc(var(--safe-top) + 66px);
+      left:50%; transform:translateX(-50%) translateY(-8px);
+      background:var(--bark); border:1px solid var(--moss);
+      border-radius:20px; padding:7px 16px;
+      font-size:12px; font-weight:700; color:var(--mist);
+      z-index:300; opacity:0; pointer-events:none;
+      transition:opacity .2s, transform .2s;
+      white-space:nowrap; max-width:calc(100vw - 48px); text-align:center;
+    }
+    #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    #toast.t-warn  { border-color:var(--amber); color:var(--amber-lt); }
+    #toast.t-error { border-color:var(--danger); color:#e08070; }
+    #toast.t-ok    { border-color:var(--lichen); color:var(--water-lt); }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 1 — RIVER SELECT
+══════════════════════════════════════════════ -->
+<div id="screen-select" class="screen">
+  <div class="wordmark">
+    <div class="wordmark-eyebrow">Wilderness River Guide</div>
+    <h1 class="wordmark-h1">Choose your <em>river</em></h1>
+  </div>
+
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+    <div id="returning-msg" class="returning-msg">
+      <strong id="ret-name">Selway River</strong> is cached and ready —<br>
+      tap the card to go straight to the map.
+    </div>
+
+    <div class="river-card" id="card-selway" onclick="selectRiver('selway')">
+      <div class="card-hero">
+        <span class="card-state-badge">IDAHO</span>
+        <div class="card-name">Selway River</div>
+        <div class="card-region">SELWAY-BITTERROOT WILDERNESS</div>
+      </div>
+      <div class="card-stats">
+        <div class="stat">
+          <span class="stat-lbl">Distance</span>
+          <span class="stat-val">47.9</span>
+          <span class="stat-unit">river miles</span>
+        </div>
+        <div class="stat">
+          <span class="stat-lbl">Max class</span>
+          <span class="stat-val">IV+</span>
+          <span class="stat-unit">Moose Juice</span>
+        </div>
+        <div class="stat">
+          <span class="stat-lbl">Season</span>
+          <span class="stat-val">6 wk</span>
+          <span class="stat-unit">May – Aug</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <span class="card-cta">Prepare &amp; launch</span>
+        <div class="card-arrow">→</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">MORE RIVERS COMING SOON · OPEN SOURCE ON GITHUB</div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 2 — LOADING
+══════════════════════════════════════════════ -->
+<div id="screen-loading" class="screen hidden">
+  <div id="load-inner">
+
+    <svg class="flow-svg" viewBox="0 0 340 60" fill="none">
+      <path class="fp1"
+        d="M0 30 Q42 12 85 30 Q128 48 170 30 Q212 12 255 30 Q298 48 340 30"
+        stroke="#5ba8c4" stroke-width="2.5" stroke-linecap="round"/>
+      <path class="fp2"
+        d="M0 40 Q42 24 85 40 Q128 56 170 40 Q212 24 255 40 Q298 56 340 40"
+        stroke="#8ecde0" stroke-width="1.5" stroke-linecap="round" opacity=".35"/>
+    </svg>
+
+    <div class="load-title">
+      <h2>Selway River</h2>
+      <p>Paradise → Race Creek &middot; 47.9 mi</p>
+    </div>
+
+    <div class="stages" id="stages">
+      <div class="stage" id="s0">
+        <div class="s-ico">🗺</div>
+        <div class="s-text">
+          <div class="s-name">River centerline</div>
+          <div class="s-sub" id="s0-sub">Ready to download…</div>
+        </div>
+        <div class="s-check">✓</div>
+      </div>
+      <div class="stage" id="s1">
+        <div class="s-ico">📍</div>
+        <div class="s-text">
+          <div class="s-name">Rapids &amp; camps</div>
+          <div class="s-sub" id="s1-sub">Waiting…</div>
+        </div>
+        <div class="s-check">✓</div>
+      </div>
+      <div class="stage" id="s2">
+        <div class="s-ico">💧</div>
+        <div class="s-text">
+          <div class="s-name">Live flow gauge</div>
+          <div class="s-sub" id="s2-sub">Waiting…</div>
+        </div>
+        <div class="s-check">✓</div>
+      </div>
+      <div class="stage" id="s3">
+        <div class="s-ico">🛰</div>
+        <div class="s-text">
+          <div class="s-name">Satellite tiles</div>
+          <div class="s-sub" id="s3-sub">Waiting…</div>
+        </div>
+        <div class="s-check">✓</div>
+      </div>
+    </div>
+
+    <div class="prog-wrap">
+      <div class="prog-track"><div class="prog-bar" id="prog-bar"></div></div>
+      <div class="prog-label">
+        <span id="prog-txt">Starting…</span>
+        <span id="prog-pct">0%</span>
+      </div>
+    </div>
+
+    <div class="load-status" id="load-status">&nbsp;</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 3 — MAP
+══════════════════════════════════════════════ -->
+<div id="screen-map" class="screen hidden">
+  <div id="map"></div>
+
+  <div id="top-bar">
+    <button class="top-btn" id="menu-btn">☰</button>
+    <div id="top-info">
+      <div id="top-rname">Selway River</div>
+      <div id="top-gauge">Flow: <span class="gv" id="gval">—</span></div>
+    </div>
+    <div id="mile-pill" aria-live="polite"></div>
+  </div>
+
+  <div id="bot-bar">
+    <div id="measure-result">
+      <div class="mr-row">
+        <span class="mr-mi" id="mr-mi">—</span>
+        <button class="mr-x" onclick="clearMeasure()">✕</button>
+      </div>
+      <div class="mr-time" id="mr-time"></div>
+      <div class="mr-between" id="mr-between"></div>
+    </div>
+
+    <div id="layer-row">
+      <button class="lchip active" data-layer="satellite">🛰 Satellite</button>
+      <button class="lchip" data-layer="topo">📐 Topo</button>
+      <button class="lchip" data-layer="osm">🗺 Street</button>
+    </div>
+
+    <div id="filter-row">
+      <button class="fchip active" data-poi="rapid">🌊 Rapids</button>
+      <button class="fchip active" data-poi="camp">⛺ Camps</button>
+      <button class="fchip active" data-poi="poi">📍 Points</button>
+    </div>
+
+    <div id="action-row">
+      <button class="abtn" id="gps-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg>
+        GPS
+      </button>
+      <button class="abtn" id="measure-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H4c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H4V8h2v4h2V8h2v4h2V8h2v4h2V8h2v8z"/></svg>
+        Measure
+      </button>
+      <button class="abtn" id="center-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06z"/></svg>
+        Center
+      </button>
+    </div>
+  </div>
+
+  <nav id="panel">
+    <div id="ph">
+      <div>
+        <h2>Selway River</h2>
+        <p>Paradise → Race Creek · 47.9 mi · Class IV+</p>
+      </div>
+      <button id="pclose">✕</button>
+    </div>
+    <div class="tab-bar">
+      <button class="tabbtn active" data-tab="info">Info</button>
+      <button class="tabbtn" data-tab="rapids">Rapids</button>
+      <button class="tabbtn" data-tab="camps">Camps</button>
+    </div>
+    <div id="pb">
+      <div class="tpane active" id="tab-info">
+        <div class="permit-banner">⚠️ <strong>Permit required.</strong> Single launch per day via the 4 Rivers Lottery on Recreation.gov. Season late May–early August.</div>
+        <div class="icard">
+          <div class="icard-ttl">Trip Overview</div>
+          <div class="irow"><span class="ilbl">Put-in</span><span class="ival">Paradise (Mi 0)</span></div>
+          <div class="irow"><span class="ilbl">Take-out</span><span class="ival">Race Creek (Mi 47.9)</span></div>
+          <div class="irow"><span class="ilbl">Duration</span><span class="ival">5–6 days</span></div>
+          <div class="irow"><span class="ilbl">Gradient</span><span class="ival">~28 ft/mi avg</span></div>
+          <div class="irow"><span class="ilbl">Max class</span><span class="ival">IV+ (Moose Juice)</span></div>
+        </div>
+        <div class="icard">
+          <div class="icard-ttl">Live Conditions</div>
+          <div class="irow"><span class="ilbl">Flow (Lowell)</span><span class="gv ival" id="gauge-panel">—</span></div>
+          <div class="irow"><span class="ilbl">Gauge site</span><span class="ival">#13336500</span></div>
+        </div>
+        <div class="icard">
+          <div class="icard-ttl">Flow Forecast · NOAA</div>
+          <div id="noaa-forecast-rows">
+            <div class="irow"><span class="ilbl" style="color:var(--sage)">Loading…</span></div>
+          </div>
+        </div>
+        <div class="icard">
+          <div class="icard-ttl">About</div>
+          <div class="irow"><span class="ilbl">Version</span><span class="ival">1.0.0</span></div>
+          <div class="irow"><span class="ilbl">License</span><span class="ival">MIT open source</span></div>
+        </div>
+      </div>
+      <div class="tpane" id="tab-rapids">
+        <div class="poi-list" id="rapid-list"><div style="color:var(--sage);font-size:13px;padding:20px;text-align:center">Loading…</div></div>
+      </div>
+      <div class="tpane" id="tab-camps">
+        <div class="poi-list" id="camp-list"><div style="color:var(--sage);font-size:13px;padding:20px;text-align:center">Loading…</div></div>
+      </div>
+    </div>
+  </nav>
+  <div id="scrim" onclick="closePanel()"></div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

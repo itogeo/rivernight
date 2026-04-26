@@ -1,0 +1,100 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "type": "access", "name": "Paradise Launch Site", "mile": 0, "description": "Put-in. Permit check station. Water, toilets." },
+      "geometry": { "type": "Point", "coordinates": [-115.2153, 46.0747] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "rapid", "name": "Double Drop", "mile": 1.3, "difficulty": "IV", "description": "Two-tiered drop visible from river left. Scout mandatory at high water. Line left through both drops." },
+      "geometry": { "type": "Point", "coordinates": [-115.2270, 46.0755] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "rapid", "name": "Little Niagara", "mile": 2.1, "difficulty": "III+", "description": "Clean line river right. Watch for pour-over at center at high flows." },
+      "geometry": { "type": "Point", "coordinates": [-115.2380, 46.0762] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "camp", "name": "Wolf Creek Camp", "mile": 4.2, "description": "Large sandy beach, river left. Good first-night camp. Spring water upslope." },
+      "geometry": { "type": "Point", "coordinates": [-115.2620, 46.0773] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "rapid", "name": "Galloping Gertie", "mile": 6.8, "difficulty": "III", "description": "Long wave train, straightforward at most levels. Stay center." },
+      "geometry": { "type": "Point", "coordinates": [-115.2970, 46.0783] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "camp", "name": "Glover Creek Camp", "mile": 9.5, "description": "Established camp river right at Glover Creek confluence. Good shade." },
+      "geometry": { "type": "Point", "coordinates": [-115.3390, 46.0752] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "rapid", "name": "Ladle", "mile": 12.4, "difficulty": "III+", "description": "Technical rapid with multiple channels. Scout river left. Best line varies by level." },
+      "geometry": { "type": "Point", "coordinates": [-115.3840, 46.0717] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "camp", "name": "Moose Creek Airstrip Camp", "mile": 17.0, "description": "Largest camp on the river. Backcountry airstrip nearby. Good swimming hole below camp." },
+      "geometry": { "type": "Point", "coordinates": [-115.4730, 46.0758] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "rapid", "name": "Moose Creek Rapid", "mile": 17.5, "difficulty": "III+", "description": "At the mouth of Moose Creek. Read and run right of center. Opens up at high water." },
+      "geometry": { "type": "Point", "coordinates": [-115.4810, 46.0759] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "rapid", "name": "Moose Juice", "mile": 19.1, "difficulty": "IV+", "description": "Most notorious rapid on the Selway. Mandatory scout river left. Complex hole at center. Most parties portage left at high water." },
+      "geometry": { "type": "Point", "coordinates": [-115.5010, 46.0762] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "camp", "name": "Three Links Camp", "mile": 22.3, "description": "Named for Three Links Creek. Rocky beach, river right. Good mid-trip layover spot." },
+      "geometry": { "type": "Point", "coordinates": [-115.5380, 46.0786] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "rapid", "name": "Ham Rapid", "mile": 26.5, "difficulty": "III", "description": "Rollicking wave train. Fun run center to left." },
+      "geometry": { "type": "Point", "coordinates": [-115.5980, 46.0816] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "camp", "name": "Cupboard Creek Camp", "mile": 30.1, "description": "River left, large flat site. Named for Cupboard Creek. Popular 3rd-night camp." },
+      "geometry": { "type": "Point", "coordinates": [-115.6380, 46.0834] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "rapid", "name": "Tee Kettle", "mile": 33.7, "difficulty": "IV", "description": "Powerful hole in center. Run far right. Scout from river left." },
+      "geometry": { "type": "Point", "coordinates": [-115.6780, 46.0862] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "camp", "name": "Goat Bar Camp", "mile": 37.2, "description": "One of the nicest camps on the lower Selway. Gravel bar, open views." },
+      "geometry": { "type": "Point", "coordinates": [-115.7090, 46.0882] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "rapid", "name": "Gedney Rapid", "mile": 40.8, "difficulty": "III+", "description": "River bends left into a constriction. Technical at low water, pushy at high." },
+      "geometry": { "type": "Point", "coordinates": [-115.7560, 46.0902] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "rapid", "name": "Selway Falls", "mile": 44.1, "difficulty": "V", "description": "Unrunnable 15-ft waterfall. Mandatory portage river left — 0.5 mi trail. Do not miss the take-out above the falls." },
+      "geometry": { "type": "Point", "coordinates": [-115.7980, 46.0924] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "camp", "name": "O'Hara Bar Camp", "mile": 46.5, "description": "Last camp before Race Creek take-out. Good water and flat sites." },
+      "geometry": { "type": "Point", "coordinates": [-115.8210, 46.0945] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "type": "access", "name": "Race Creek Takeout", "mile": 47.9, "description": "Take-out. Road access. Parking and shuttle drop area." },
+      "geometry": { "type": "Point", "coordinates": [-115.8342, 46.0958] }
+    }
+  ]
+}
