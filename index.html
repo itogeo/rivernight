@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="River Guide" />
@@ -476,6 +476,96 @@
     .dl-btn:disabled { opacity: .5; cursor: default; }
     .dl-btn-done { border-color: var(--water); color: var(--water-lt); background: rgba(91,168,196,.08); }
 
+    /* layer chips inside panel */
+    .layer-chips-row {
+      display: flex; gap: 6px; margin-top: 6px;
+    }
+    .layer-chips-row .lchip { flex: 1; }
+
+    /* ══════════════════════════════════════════════
+       SCREEN 4 — RIVER LOG
+    ══════════════════════════════════════════════ */
+    #screen-river {
+      background: var(--ink);
+      display: flex; flex-direction: column;
+      z-index: 15;
+    }
+    #rlog-head {
+      padding: calc(var(--safe-top) + 10px) 16px 12px;
+      background: var(--bark);
+      border-bottom: 1px solid var(--moss);
+      display: flex; align-items: center; gap: 12px;
+      flex-shrink: 0;
+    }
+    #rlog-head-info { flex: 1; min-width: 0; }
+    #rlog-htitle { font-size: 18px; font-weight: 900; color: var(--paper); }
+    #rlog-hsub { font-family: var(--fm); font-size: 10px; color: var(--sage); margin-top: 2px; letter-spacing: .05em; }
+    #rlog-scroll {
+      flex: 1; overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 20px 14px calc(var(--safe-bot) + 28px);
+    }
+    #rlog-body { position: relative; }
+
+    .rlog-entry {
+      display: flex; gap: 10px;
+      margin-bottom: 10px; cursor: pointer;
+    }
+    .rlog-dot-col {
+      width: 28px; flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center;
+      padding-top: 13px; position: relative;
+    }
+    .rlog-dot-col::before {
+      content: '';
+      position: absolute; left: 50%; top: 0; bottom: -10px;
+      width: 2px; background: var(--lichen);
+      transform: translateX(-50%);
+    }
+    .rlog-entry:last-child .rlog-dot-col::before { bottom: 0; }
+    .rlog-dot {
+      width: 11px; height: 11px; border-radius: 50%;
+      background: var(--lichen); border: 2px solid var(--sage);
+      position: relative; z-index: 1; flex-shrink: 0;
+    }
+    .d-rapid  { background: var(--rapid-c) !important; border-color: #e07060 !important; }
+    .d-camp   { background: var(--water)   !important; border-color: var(--water-lt) !important; }
+    .d-access { background: var(--amber)   !important; border-color: var(--amber-lt) !important; }
+    .rlog-card-item {
+      flex: 1; background: var(--bark); border: 1px solid var(--moss);
+      border-radius: 10px; padding: 10px 12px;
+      transition: border-color .15s;
+    }
+    .rlog-entry:active .rlog-card-item { border-color: var(--amber); }
+    .rlog-mi {
+      font-family: var(--fm); font-size: 9px; letter-spacing: .1em;
+      color: var(--sage); text-transform: uppercase; margin-bottom: 4px;
+    }
+    .rlog-nm {
+      font-size: 14px; font-weight: 800;
+      color: var(--paper); line-height: 1.2; margin-bottom: 3px;
+    }
+    .rlog-dc { font-size: 11px; color: var(--sage); line-height: 1.45; margin-top: 5px; }
+
+    .rlog-gap {
+      display: flex; gap: 10px; align-items: center;
+      padding: 5px 0; margin-bottom: 10px;
+    }
+    .rlog-gap-track {
+      width: 28px; flex-shrink: 0;
+      display: flex; justify-content: center; position: relative;
+    }
+    .rlog-gap-track::before {
+      content: '';
+      position: absolute; left: 50%; top: 0; bottom: 0;
+      width: 2px; background: var(--lichen);
+      transform: translateX(-50%);
+    }
+    .rlog-gap-label {
+      font-family: var(--fm); font-size: 9px; color: var(--lichen);
+      letter-spacing: .08em;
+    }
+
     /* toast */
     #toast {
       position:fixed; top:calc(var(--safe-top) + 66px);
@@ -622,6 +712,9 @@
       <div id="top-rname">Selway River</div>
       <div id="top-gauge">Flow: <span class="gv" id="gval">—</span></div>
     </div>
+    <button class="top-btn" id="log-btn" title="River Log">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>
+    </button>
     <div id="mile-pill" aria-live="polite"></div>
   </div>
 
@@ -633,12 +726,6 @@
       </div>
       <div class="mr-time" id="mr-time"></div>
       <div class="mr-between" id="mr-between"></div>
-    </div>
-
-    <div id="layer-row">
-      <button class="lchip active" data-layer="satellite">🛰 Satellite</button>
-      <button class="lchip" data-layer="topo">📐 Topo</button>
-      <button class="lchip" data-layer="osm">🗺 Street</button>
     </div>
 
     <div id="filter-row">
@@ -678,6 +765,14 @@
     </div>
     <div id="pb">
       <div class="tpane active" id="tab-info">
+        <div class="icard">
+          <div class="icard-ttl">Map Layer</div>
+          <div class="layer-chips-row">
+            <button class="lchip active" data-layer="satellite">🛰 Satellite</button>
+            <button class="lchip" data-layer="topo">📐 Topo</button>
+            <button class="lchip" data-layer="osm">🗺 Street</button>
+          </div>
+        </div>
         <div class="permit-banner">⚠️ <strong>Permit required.</strong> Single launch per day via the 4 Rivers Lottery on Recreation.gov. Season late May–early August.</div>
         <div class="icard">
           <div class="icard-ttl">Trip Overview</div>
@@ -726,6 +821,26 @@
     </div>
   </nav>
   <div id="scrim" onclick="closePanel()"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 4 — RIVER LOG
+══════════════════════════════════════════════ -->
+<div id="screen-river" class="screen hidden">
+  <div id="rlog-head">
+    <button class="top-btn" onclick="closeRiverLog()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
+    <div id="rlog-head-info">
+      <div id="rlog-htitle">River Log</div>
+      <div id="rlog-hsub">Selway · Paradise → Race Creek · 47.9 mi</div>
+    </div>
+  </div>
+  <div id="rlog-scroll">
+    <div id="rlog-body">
+      <div style="color:var(--sage);font-size:13px;padding:40px;text-align:center">Loading…</div>
+    </div>
+  </div>
 </div>
 
 <div id="toast" role="status" aria-live="polite"></div>

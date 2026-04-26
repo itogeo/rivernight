@@ -337,17 +337,29 @@ function deg2tile(lat, lon, z) {
 }
 
 function generateTileUrls(rv) {
-  const { w, s, e, n } = rv.tileBbox;
-  const urls = [];
+  const coords = S.riverCoords.length ? S.riverCoords : null;
+  const urls = new Set();
   const base = TILE_SOURCES.satellite.url;
+  const BUFFER = 1; // ±1 tile buffer around each river vertex
+
   for (const z of rv.tileZooms) {
-    const [xMin, yMax] = deg2tile(s, w, z);
-    const [xMax, yMin] = deg2tile(n, e, z);
-    for (let x = xMin; x <= xMax; x++)
-      for (let y = yMin; y <= yMax; y++)
-        urls.push(base.replace('{z}', z).replace('{y}', y).replace('{x}', x));
+    if (coords) {
+      for (const [lat, lon] of coords) {
+        const [cx, cy] = deg2tile(lat, lon, z);
+        for (let dx = -BUFFER; dx <= BUFFER; dx++)
+          for (let dy = -BUFFER; dy <= BUFFER; dy++)
+            urls.add(base.replace('{z}', z).replace('{y}', cy + dy).replace('{x}', cx + dx));
+      }
+    } else {
+      const { w, s, e, n } = rv.tileBbox;
+      const [xMin, yMax] = deg2tile(s, w, z);
+      const [xMax, yMin] = deg2tile(n, e, z);
+      for (let x = xMin; x <= xMax; x++)
+        for (let y = yMin; y <= yMax; y++)
+          urls.add(base.replace('{z}', z).replace('{y}', y).replace('{x}', x));
+    }
   }
-  return urls;
+  return [...urls];
 }
 
 async function downloadForOffline() {
@@ -829,6 +841,73 @@ function computeDistance() {
 }
 
 // ─────────────────────────────────────────────────────────
+// RIVER LOG (scroll view)
+// ─────────────────────────────────────────────────────────
+function openRiverLog() {
+  buildRiverLog();
+  showScreen('screen-river');
+}
+
+function closeRiverLog() {
+  showScreen('screen-map');
+}
+
+function rlogFlyTo(lat, lon) {
+  showScreen('screen-map');
+  if (S.map) S.map.flyTo([lat, lon], 14, { duration: 1.2 });
+}
+
+function buildRiverLog() {
+  const container = document.getElementById('rlog-body');
+  if (!container) return;
+
+  const sorted = [...S.pois].sort((a, b) => a.properties.mile - b.properties.mile);
+  if (!sorted.length) {
+    container.innerHTML = '<div style="color:var(--sage);font-size:13px;padding:40px;text-align:center">No features loaded</div>';
+    return;
+  }
+
+  const typeIcon = { rapid: '🌊', camp: '⛺', access: '🚣', poi: '📍' };
+
+  let html = '';
+  sorted.forEach((feat, idx) => {
+    const p = feat.properties;
+    const [lon, lat] = feat.geometry.coordinates;
+    const type = p.type || 'poi';
+
+    if (idx > 0) {
+      const gap = p.mile - sorted[idx - 1].properties.mile;
+      if (gap >= 1.5) {
+        html += `
+          <div class="rlog-gap">
+            <div class="rlog-gap-track"></div>
+            <div class="rlog-gap-label">${gap.toFixed(1)} mi ·· ·· ··</div>
+          </div>`;
+      }
+    }
+
+    const diffBadge = p.difficulty
+      ? `<span class="dpill" style="background:${CLASS_COLORS[p.difficulty]||'#888'};margin-top:4px;display:inline-block">${p.difficulty}</span>`
+      : '';
+
+    html += `
+      <div class="rlog-entry" onclick="rlogFlyTo(${lat},${lon})">
+        <div class="rlog-dot-col">
+          <div class="rlog-dot d-${type}"></div>
+        </div>
+        <div class="rlog-card-item">
+          <div class="rlog-mi">Mile ${p.mile.toFixed(1)} · ${typeIcon[type] || '📍'}</div>
+          <div class="rlog-nm">${p.name}</div>
+          ${diffBadge}
+          <div class="rlog-dc">${(p.description || '').substring(0, 130)}${(p.description || '').length > 130 ? '…' : ''}</div>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+// ─────────────────────────────────────────────────────────
 // PANEL
 // ─────────────────────────────────────────────────────────
 function openPanel()  { document.getElementById('panel').classList.add('open'); }
@@ -893,6 +972,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('gps-btn')    ?.addEventListener('click', toggleGPS);
   document.getElementById('center-btn') ?.addEventListener('click', centerOnGPS);
   document.getElementById('measure-btn')?.addEventListener('click', toggleMeasure);
+  document.getElementById('log-btn')    ?.addEventListener('click', openRiverLog);
 
   document.querySelectorAll('.lchip').forEach(b =>
     b.addEventListener('click', () => setTileLayer(b.dataset.layer)));
