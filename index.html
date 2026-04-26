@@ -463,6 +463,19 @@
     .pp-desc { font-size:12px; color:var(--sage); line-height:1.5; }
     .leaflet-popup-close-button { color:var(--sage)!important; font-size:18px!important; top:6px!important; right:8px!important; }
 
+    /* offline download button */
+    .dl-btn {
+      width: 100%; margin-top: 10px; padding: 12px 10px;
+      background: var(--moss); border: 1.5px solid var(--lichen);
+      border-radius: 8px; color: var(--mist);
+      font-family: var(--fh); font-size: 13px; font-weight: 700;
+      cursor: pointer; letter-spacing: .02em; text-align: center;
+      transition: all .15s; display: block;
+    }
+    .dl-btn:active:not(:disabled) { transform: scale(.98); background: var(--lichen); }
+    .dl-btn:disabled { opacity: .5; cursor: default; }
+    .dl-btn-done { border-color: var(--water); color: var(--water-lt); background: rgba(91,168,196,.08); }
+
     /* toast */
     #toast {
       position:fixed; top:calc(var(--safe-top) + 66px);
@@ -684,6 +697,19 @@
           <div id="noaa-forecast-rows">
             <div class="irow"><span class="ilbl" style="color:var(--sage)">Loading…</span></div>
           </div>
+        </div>
+        <div class="icard">
+          <div class="icard-ttl">Offline Maps</div>
+          <div class="irow"><span class="ilbl">Status</span><span class="ival" id="offline-status">Not downloaded</span></div>
+          <div class="irow"><span class="ilbl">Coverage</span><span class="ival">Full 47.9 mi · z11–z14</span></div>
+          <div id="offline-prog-wrap" style="display:none;padding:8px 0 2px">
+            <div class="prog-track"><div class="prog-bar" id="offline-prog-bar" style="width:0%"></div></div>
+            <div class="prog-label">
+              <span id="offline-prog-txt">Starting…</span>
+              <span id="offline-prog-pct">0%</span>
+            </div>
+          </div>
+          <button class="dl-btn" id="offline-btn">⬇ Download for offline</button>
         </div>
         <div class="icard">
           <div class="icard-ttl">About</div>

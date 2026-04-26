@@ -16,6 +16,8 @@ const RIVERS = {
     totalMiles: 47.9,
     putIn:   { lat: 46.0747, lon: -115.2153, name: 'Paradise Launch Site' },
     takeOut: { lat: 46.0958, lon: -115.8342, name: 'Race Creek Takeout' },
+    tileBbox:  { w: -115.90, s: 45.97, e: -115.10, n: 46.18 },
+    tileZooms: [11, 12, 13, 14],
     gaugeUrl: 'https://waterservices.usgs.gov/nwis/iv/?format=json&sites=13336500&parameterCd=00060&siteStatus=all',
     noaaUrl:  'https://api.water.noaa.gov/nwps/v1/gauges/seli1/stageflow',
     dataFiles: {
@@ -57,6 +59,7 @@ const S = {
   measureLine: null,
   gaugeData: null,
   noaaForecast: null,
+  downloadState: 'idle', // 'idle' | 'downloading' | 'done'
 };
 
 // ─────────────────────────────────────────────────────────
@@ -322,6 +325,124 @@ async function fetchNOAAForecast() {
 
 
 // ─────────────────────────────────────────────────────────
+// OFFLINE TILE DOWNLOAD
+// ─────────────────────────────────────────────────────────
+function deg2tile(lat, lon, z) {
+  const n = Math.pow(2, z);
+  const lr = lat * Math.PI / 180;
+  return [
+    Math.floor((lon + 180) / 360 * n),
+    Math.floor((1 - Math.log(Math.tan(lr) + 1 / Math.cos(lr)) / Math.PI) / 2 * n),
+  ];
+}
+
+function generateTileUrls(rv) {
+  const { w, s, e, n } = rv.tileBbox;
+  const urls = [];
+  const base = TILE_SOURCES.satellite.url;
+  for (const z of rv.tileZooms) {
+    const [xMin, yMax] = deg2tile(s, w, z);
+    const [xMax, yMin] = deg2tile(n, e, z);
+    for (let x = xMin; x <= xMax; x++)
+      for (let y = yMin; y <= yMax; y++)
+        urls.push(base.replace('{z}', z).replace('{y}', y).replace('{x}', x));
+  }
+  return urls;
+}
+
+async function downloadForOffline() {
+  if (S.downloadState === 'downloading') return;
+
+  const rv = S.river;
+  const urls = generateTileUrls(rv);
+
+  S.downloadState = 'downloading';
+  _setOfflineUI('downloading', 0, urls.length);
+
+  const sw = navigator.serviceWorker?.controller;
+
+  if (sw) {
+    await new Promise(resolve => {
+      const ch = new MessageChannel();
+      ch.port1.onmessage = ev => {
+        if (ev.data?.type === 'PRECACHE_PROGRESS')
+          _setOfflineUI('downloading', ev.data.done, ev.data.total);
+        if (ev.data?.type === 'PRECACHE_DONE') resolve();
+      };
+      sw.postMessage({ type: 'PRECACHE_TILES', urls }, [ch.port2]);
+    });
+  } else {
+    const cache = await caches.open(`selway-tiles-v1.0.0`);
+    const BATCH = 8;
+    for (let i = 0; i < urls.length; i += BATCH) {
+      await Promise.allSettled(urls.slice(i, i + BATCH).map(async url => {
+        if (await cache.match(url)) return;
+        try { const r = await fetch(url); if (r.ok) await cache.put(url, r); } catch {}
+      }));
+      _setOfflineUI('downloading', Math.min(i + BATCH, urls.length), urls.length);
+      await delay(0);
+    }
+  }
+
+  S.downloadState = 'done';
+  localStorage.setItem(`rg_tiles_dl_${rv.id}`, new Date().toISOString());
+  _setOfflineUI('done', urls.length, urls.length);
+}
+
+function updateOfflineUI() {
+  const rv = S.river;
+  if (!rv) return;
+  const saved = localStorage.getItem(`rg_tiles_dl_${rv.id}`);
+  if (saved || S.downloadState === 'done') {
+    S.downloadState = 'done';
+    _setOfflineUI('done', 0, 0, saved);
+  } else {
+    _setOfflineUI('idle', 0, generateTileUrls(rv).length);
+  }
+}
+
+function _setOfflineUI(state, done, total, savedDate) {
+  const btn    = document.getElementById('offline-btn');
+  const status = document.getElementById('offline-status');
+  const wrap   = document.getElementById('offline-prog-wrap');
+  const bar    = document.getElementById('offline-prog-bar');
+  const txt    = document.getElementById('offline-prog-txt');
+  const pct    = document.getElementById('offline-prog-pct');
+  if (!btn) return;
+
+  if (state === 'idle') {
+    const mb = Math.round(total * 38 / 1024);
+    status.textContent = 'Not downloaded';
+    status.style.color = '';
+    wrap.style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = `⬇ Download for offline · ~${mb} MB`;
+    btn.className = 'dl-btn';
+  } else if (state === 'downloading') {
+    const p = total ? Math.round(done / total * 100) : 0;
+    status.textContent = `${p}% · ${done} / ${total} tiles`;
+    status.style.color = 'var(--amber-lt)';
+    wrap.style.display = 'block';
+    bar.style.width = `${p}%`;
+    txt.textContent = `${done} of ${total} tiles cached`;
+    pct.textContent = `${p}%`;
+    btn.disabled = true;
+    btn.textContent = 'Downloading…';
+    btn.className = 'dl-btn';
+  } else if (state === 'done') {
+    const d = savedDate
+      ? new Date(savedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : 'today';
+    status.textContent = `Ready offline · ${d}`;
+    status.style.color = 'var(--water-lt)';
+    wrap.style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = '↻ Re-download';
+    btn.className = 'dl-btn dl-btn-done';
+  }
+}
+
+// ─────────────────────────────────────────────────────────
 // LAUNCH MAP
 // ─────────────────────────────────────────────────────────
 function launchMap() {
@@ -335,6 +456,7 @@ function launchMap() {
   drawPOIs();
   buildPOILists();
   updateGaugeUI();
+  updateOfflineUI();
   Promise.all([fetchGaugeData(), fetchNOAAForecast()]).then(updateGaugeUI);
 }
 
@@ -778,6 +900,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.querySelectorAll('.tabbtn').forEach(b =>
     b.addEventListener('click', () => showTab(b.dataset.tab)));
+
+  document.getElementById('offline-btn')
+    ?.addEventListener('click', downloadForOffline);
 
   // Warn before leaving if GPS is on
   window.addEventListener('beforeunload', e => {
