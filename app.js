@@ -261,21 +261,17 @@ async function loadPOIData() {
 
 function snapPOIsToRiver() {
   const rc = S.riverCoords;
-  if (!rc.length || !S.pois.length) return;
+  const vm = S.vertexMiles;
+  if (!rc.length || !vm.length || !S.pois.length) return;
   S.pois.forEach(feat => {
-    const [plon, plat] = feat.geometry.coordinates;
-    let bestLat = rc[0][0], bestLon = rc[0][1], bestD = Infinity;
-    for (let i = 0; i < rc.length - 1; i++) {
-      const [alat, alon] = rc[i];
-      const [blat, blon] = rc[i + 1];
-      const dx = blon - alon, dy = blat - alat;
-      const len2 = dx * dx + dy * dy;
-      const t = len2 ? Math.max(0, Math.min(1, ((plon - alon) * dx + (plat - alat) * dy) / len2)) : 0;
-      const clat = alat + t * dy, clon = alon + t * dx;
-      const d = (plat - clat) ** 2 + (plon - clon) ** 2;
-      if (d < bestD) { bestD = d; bestLat = clat; bestLon = clon; }
+    const targetMile = feat.properties.mile;
+    let bestIdx = 0, bestDiff = Infinity;
+    for (let i = 0; i < vm.length; i++) {
+      const d = Math.abs(vm[i] - targetMile);
+      if (d < bestDiff) { bestDiff = d; bestIdx = i; }
     }
-    feat.geometry.coordinates = [bestLon, bestLat];
+    const [lat, lon] = rc[bestIdx];
+    feat.geometry.coordinates = [lon, lat];
   });
 }
 

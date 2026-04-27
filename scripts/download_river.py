@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """
-download_river.py — Build Selway River centerline.
+download_river.py — Build Selway River centerline (Wild and Scenic section).
+
+Run: Paradise Launch Site → Race Creek Takeout, miles 0–47.9
+Geography: Bitterroot Mountains, Idaho. River flows northwest.
+  Paradise: 45.8606°N 114.7440°W
+  Race Creek: 46.0438°N 115.2832°W
 
 Sources:
-  Upper run (Paradise → Ham Rapid, miles 0–26.5):
-    OSM relation 17877072 — all ways filtered to canyon lat band (< 46.12)
-  Lower run (Ham Rapid → Race Creek, miles 26.5–47.9):
-    Catmull-Rom spline through POI anchors (OSM has nothing here)
+  OSM relation 17877072 — full Selway River; filtered to the paddled section
+  NHD+ HR fallback if Overpass is down
+  Catmull-Rom spline through POI anchors for any gap sections
 
-Mileage: pure arc-length scaled to 47.9 mi. No rubber-sheeting.
+Mileage: piecewise arc-length calibrated at guidebook POI anchors.
 
 Run from repo root:
     python3 scripts/download_river.py
@@ -25,14 +29,21 @@ except ImportError:
 OUT       = Path(__file__).parent.parent / "data" / "river_centerline.geojson"
 POIS_PATH = Path(__file__).parent.parent / "data" / "pois.geojson"
 
-PUT_IN      = (-115.2153, 46.0747)   # Paradise Launch, mile 0
-TAKE_OUT    = (-115.8342, 46.0958)   # Race Creek, mile 47.9
+PUT_IN      = (-114.7440, 45.8606)   # Paradise Launch, mile 0
+TAKE_OUT    = (-115.2832, 46.0438)   # Race Creek, mile 47.9
 TOTAL_MILES = 47.9
 
 OSM_RELATION_ID = 17877072
-# Strip nodes north of this lat — filters out the Lochsa confluence tangent
-CANYON_LAT_MAX = 46.12
-# NHD fallback if OSM relation fetch fails
+
+# The Wild and Scenic paddled section occupies this bounding box:
+#   lon: -114.70 (east, near Paradise) → -115.35 (west, past Race Creek)
+#   lat:  45.80 (south) → 46.10 (north)
+# Nodes outside this box are part of the lower Selway (toward Lowell) or headwaters.
+SECTION_LAT_MAX = 46.10
+SECTION_LAT_MIN = 45.78
+SECTION_LON_MIN = -115.35   # western bound — past Race Creek
+SECTION_LON_MAX = -114.69   # eastern bound — just east of Paradise
+
 NHD_URL = (
     "https://hydro.nationalmap.gov/arcgis/rest/services"
     "/NHDPlus_HR/MapServer/3/query"
@@ -41,7 +52,8 @@ OVERPASS_URLS = [
     "https://overpass.kumi.systems/api/interpreter",
     "https://overpass-api.de/api/interpreter",
 ]
-# Ham Rapid — where OSM coverage ends, spline takes over
+
+# Ham Rapid — OSM coverage sometimes sparse west of here; spline fills gaps
 SPLINE_START_MILE = 26.5
 
 
@@ -60,8 +72,7 @@ def haversine_m(c1, c2):
 # ── OSM relation fetch ────────────────────────────────────────────────────────
 
 def fetch_osm_relation(relation_id):
-    """Fetch all ways in an OSM relation, return as list of coord-lists.
-    Nodes north of CANYON_LAT_MAX are dropped to remove confluence artifacts."""
+    """Fetch all ways in OSM relation 17877072, filtering to the paddled section."""
     query = f"""
 [out:json][timeout:120];
 relation({relation_id});
@@ -89,8 +100,8 @@ out body geom;
             (g["lon"], g["lat"])
             for g in e.get("geometry", [])
             if "lon" in g and "lat" in g
-            and g["lat"] < CANYON_LAT_MAX       # drop confluence tangent
-            and g["lon"] < PUT_IN[0] + 0.05     # drop headwaters east of put-in
+            and SECTION_LAT_MIN < g["lat"] < SECTION_LAT_MAX
+            and SECTION_LON_MIN < g["lon"] < SECTION_LON_MAX
         ]
         if len(coords) >= 2:
             segs.append(coords)
@@ -105,7 +116,8 @@ def fetch_nhd_named_selway():
     print("Querying NHD+ HR for 'Selway River' named segments…")
     params = {
         "where": "GNIS_Name = 'Selway River'",
-        "geometry": "-116.10,45.80,-115.00,46.40",
+        # Bounding box covering Paradise → Race Creek
+        "geometry": f"{SECTION_LON_MAX},{SECTION_LAT_MIN},{SECTION_LON_MIN},{SECTION_LAT_MAX}",
         "geometryType": "esriGeometryEnvelope",
         "inSR": "4326",
         "spatialRel": "esriSpatialRelIntersects",
@@ -123,7 +135,12 @@ def fetch_nhd_named_selway():
         g = f.get("geometry", {})
         if g.get("type") != "LineString":
             continue
-        coords = [(c[0], c[1]) for c in g["coordinates"] if len(c) >= 2]
+        coords = [
+            (c[0], c[1]) for c in g["coordinates"]
+            if len(c) >= 2
+            and SECTION_LAT_MIN < c[1] < SECTION_LAT_MAX
+            and SECTION_LON_MIN < c[0] < SECTION_LON_MAX
+        ]
         if len(coords) >= 2:
             segs.append(coords)
     print(f"  {len(feats)} features → {len(segs)} usable segments")
@@ -320,7 +337,8 @@ def main():
     source_upper = ""
 
     # ── Step 1: OSM relation for upper canyon ─────────────────────────────────
-    print(f"\n── Step 1: OSM relation {OSM_RELATION_ID} (upper canyon) ──")
+    print(f"\n── Step 1: OSM relation {OSM_RELATION_ID} (Wild and Scenic section) ──")
+    print(f"  Bounding box: lon {SECTION_LON_MIN}→{SECTION_LON_MAX}, lat {SECTION_LAT_MIN}→{SECTION_LAT_MAX}")
     try:
         osm_segs = fetch_osm_relation(OSM_RELATION_ID)
         if osm_segs:
@@ -340,7 +358,7 @@ def main():
         except Exception as e:
             print(f"  NHD failed: {e}")
 
-    # ── Step 3: Catmull-Rom lower canyon (OSM has nothing here) ───────────────
+    # ── Step 3: Catmull-Rom fill for any gap / lower section ──────────────────
     print(f"\n── Step 3: Catmull-Rom lower canyon "
           f"(miles {SPLINE_START_MILE}–{TOTAL_MILES}) ──")
 
@@ -349,10 +367,14 @@ def main():
         # Lower POIs west of the current upper chain tail
         rem_pois = [p for p in lower_pois
                     if p['geometry']['coordinates'][0] < tail[0] - 0.005]
-        spline_pts = [tail] + [tuple(p['geometry']['coordinates']) for p in rem_pois]
-        lower_spline = catmull_rom_spline(spline_pts, n_per_seg=40)
-        print(f"  Spline: {len(lower_spline)} nodes through {len(spline_pts)-1} anchors")
-        full_chain = upper_chain + list(lower_spline[1:])
+        if rem_pois:
+            spline_pts = [tail] + [tuple(p['geometry']['coordinates']) for p in rem_pois]
+            lower_spline = catmull_rom_spline(spline_pts, n_per_seg=40)
+            print(f"  Spline: {len(lower_spline)} nodes through {len(spline_pts)-1} anchors")
+            full_chain = upper_chain + list(lower_spline[1:])
+        else:
+            print(f"  OSM chain already reaches take-out area — no spline needed")
+            full_chain = upper_chain
         source = f"{source_upper} + Catmull-Rom lower canyon"
     else:
         # Complete fallback: spline through all POIs
