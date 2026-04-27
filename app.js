@@ -114,6 +114,7 @@ const S = {
   riverCoords: [],      // [[lat,lon],…]
   vertexMiles: [],      // cumulative miles per vertex
   pois: [],
+  riverLine: null,      // active Leaflet polyline
   poiGroups: {},        // { rapid: LayerGroup, … }
   gpsWatch: null,
   gpsPos: null,
@@ -159,6 +160,11 @@ function bootSelectScreen() {
 async function selectRiver(riverId) {
   S.river = RIVERS[riverId];
   if (!S.river) return;
+
+  // Push hash so the browser back button returns to the select screen
+  if (location.hash !== '#' + riverId) {
+    history.pushState({ riverId }, '', '#' + riverId);
+  }
 
   const rv = S.river;
   const ltn = document.getElementById('load-title-name');
@@ -697,8 +703,8 @@ function setTileLayer(key) {
 // ─────────────────────────────────────────────────────────
 function drawRiverLine() {
   if (!S.riverCoords.length) return;
-
-  L.polyline(S.riverCoords, {
+  if (S.riverLine) { S.map.removeLayer(S.riverLine); S.riverLine = null; }
+  S.riverLine = L.polyline(S.riverCoords, {
     color: '#5ba8c4',
     weight: 3,
     opacity: 0.8,
@@ -719,6 +725,9 @@ function addAccessMarker(lat, lon, emoji, name, sub) {
 // POIs
 // ─────────────────────────────────────────────────────────
 function drawPOIs() {
+  if (S.poiGroups && S.map) {
+    Object.values(S.poiGroups).forEach(g => { if (S.map.hasLayer(g)) S.map.removeLayer(g); });
+  }
   S.poiGroups = { rapid: L.layerGroup(), camp: L.layerGroup(), poi: L.layerGroup(), access: L.layerGroup() };
 
   S.pois.forEach(feat => {
@@ -1437,6 +1446,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Graph fullscreen tap
   document.getElementById('flow-graph-wrap')
     ?.addEventListener('click', openGraphFullscreen);
+
+  // Hash routing — back button returns to select screen
+  window.addEventListener('popstate', () => {
+    showScreen('screen-select');
+  });
+
+  // Deep-link / direct-URL support: /#selway, /#mfsalmon, /#mainsalmon
+  const initRiver = location.hash.slice(1);
+  if (RIVERS[initRiver]) {
+    selectRiver(initRiver);
+  }
 
   // Warn before leaving if GPS is on
   window.addEventListener('beforeunload', e => {
