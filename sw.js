@@ -7,7 +7,7 @@
  *  - USGS gauge: Network-first with stale fallback (ok to fail offline)
  */
 
-const APP_VERSION = 'v1.1.0';
+const APP_VERSION = 'v1.2.0';
 const SHELL_CACHE = `selway-shell-${APP_VERSION}`;
 const TILE_CACHE  = `selway-tiles-${APP_VERSION}`;
 const DATA_CACHE  = `selway-data-${APP_VERSION}`;
