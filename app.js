@@ -682,6 +682,25 @@ function initMap() {
   setTileLayer('satellite');
 
   S.map.on('click', onMapClick);
+  S.map.on('zoomend', updatePOIVisibility);
+}
+
+// Hide POI markers below zoom 12 to avoid clutter; respect active chip filters
+const POI_MIN_ZOOM = 12;
+
+function updatePOIVisibility() {
+  if (!S.map || !S.poiGroups) return;
+  const zoom = S.map.getZoom();
+  Object.keys(S.poiGroups).forEach(type => {
+    const g   = S.poiGroups[type];
+    const btn = document.querySelector(`.fchip[data-poi="${type}"]`);
+    const filterOn = btn?.classList.contains('active') ?? true;
+    if (zoom >= POI_MIN_ZOOM && filterOn) {
+      if (!S.map.hasLayer(g)) g.addTo(S.map);
+    } else {
+      if (S.map.hasLayer(g)) S.map.removeLayer(g);
+    }
+  });
 }
 
 function setTileLayer(key) {
@@ -782,15 +801,14 @@ function drawPOIs() {
     if (S.poiGroups[type]) marker.addTo(S.poiGroups[type]);
   });
 
-  Object.values(S.poiGroups).forEach(g => g.addTo(S.map));
+  updatePOIVisibility();
 }
 
 function togglePOILayer(type) {
-  const g = S.poiGroups[type];
   const btn = document.querySelector(`.fchip[data-poi="${type}"]`);
-  if (!g || !btn) return;
-  if (S.map.hasLayer(g)) { S.map.removeLayer(g); btn.classList.remove('active'); }
-  else                    { g.addTo(S.map);       btn.classList.add('active');    }
+  if (!btn) return;
+  btn.classList.toggle('active');
+  updatePOIVisibility();
 }
 
 // ─────────────────────────────────────────────────────────
