@@ -161,8 +161,10 @@ async function selectRiver(riverId) {
   if (!S.river) return;
 
   const rv = S.river;
-  document.getElementById('load-title-name')?.textContent = rv.name;
-  document.getElementById('load-title-sub')?.textContent  = rv.sub;
+  const ltn = document.getElementById('load-title-name');
+  const lts = document.getElementById('load-title-sub');
+  if (ltn) ltn.textContent = rv.name;
+  if (lts) lts.textContent = rv.sub;
 
   const cached = localStorage.getItem('rg_cached_river') === riverId;
 
