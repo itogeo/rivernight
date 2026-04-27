@@ -516,9 +516,6 @@ function drawRiverLine() {
     weight: 3,
     opacity: 0.8,
   }).addTo(S.map);
-
-  addAccessMarker(S.river.putIn.lat,   S.river.putIn.lon,   '🚣', S.river.putIn.name,   'Mile 0');
-  addAccessMarker(S.river.takeOut.lat, S.river.takeOut.lon, '🏁', S.river.takeOut.name, `Mile ${S.river.totalMiles}`);
 }
 
 function addAccessMarker(lat, lon, emoji, name, sub) {
@@ -720,7 +717,7 @@ function onGPSErr(err) {
 
 function centerOnGPS() {
   if (S.gpsPos) S.map.setView([S.gpsPos.lat, S.gpsPos.lon], 14);
-  else startGPS();
+  else S.map.flyTo(S.river.center, S.river.zoom, { duration: 0.8 });
 }
 
 function setMilePill(mile) {

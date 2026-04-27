@@ -402,14 +402,10 @@ def chain_osm_east_to_west(segs, gap_m=2000):
     return chain
 
 
-# ── POI-based centerline builder ──────────────────────────────────────────────
+# ── POI-based linear fallback ─────────────────────────────────────────────────
 
 def build_poi_centerline(pois_path, nodes_per_mile=20):
-    """
-    Build a centerline from the 19 authoritative POI waypoints.
-    Linear interpolation between consecutive POIs; miles derived from reference
-    mile values (not cumulative geometry), so every POI snaps to dist=0m.
-    """
+    """Linear interpolation fallback — used when OSM fetch fails."""
     pois = json.loads(pois_path.read_text())['features']
     pois.sort(key=lambda f: f['properties']['mile'])
     coords = []
@@ -429,6 +425,100 @@ def build_poi_centerline(pois_path, nodes_per_mile=20):
     return coords, miles_out
 
 
+# ── Rubber-sheeting ───────────────────────────────────────────────────────────
+
+def rubbersheet_segment(osm_sub, a_poi, b_poi):
+    """
+    Apply 2D rotation+scale affine so osm_sub[0]→a_poi, osm_sub[-1]→b_poi.
+    Intermediate points keep their relative curve shape.
+    """
+    if len(osm_sub) < 2:
+        return [list(a_poi), list(b_poi)]
+
+    a_osm = osm_sub[0]
+    b_osm = osm_sub[-1]
+    osm_dx = b_osm[0] - a_osm[0]
+    osm_dy = b_osm[1] - a_osm[1]
+    poi_dx = b_poi[0] - a_poi[0]
+    poi_dy = b_poi[1] - a_poi[1]
+    osm_len_sq = osm_dx**2 + osm_dy**2
+
+    if osm_len_sq < 1e-14:
+        n = len(osm_sub)
+        return [[a_poi[0] + k/(n-1)*(b_poi[0]-a_poi[0]),
+                 a_poi[1] + k/(n-1)*(b_poi[1]-a_poi[1])]
+                for k in range(n)]
+
+    # M @ [osm_dx, osm_dy]^T = [poi_dx, poi_dy]^T  (rotation + uniform scale)
+    ra = (poi_dx*osm_dx + poi_dy*osm_dy) / osm_len_sq
+    rb = (poi_dy*osm_dx - poi_dx*osm_dy) / osm_len_sq
+
+    result = []
+    for p in osm_sub:
+        dx = p[0] - a_osm[0]
+        dy = p[1] - a_osm[1]
+        result.append([a_poi[0] + ra*dx - rb*dy,
+                       a_poi[1] + rb*dx + ra*dy])
+    return result
+
+
+def rubbersheet_to_pois(osm_chain, pois, min_nodes=3):
+    """
+    Split OSM chain into segments by POI longitude, rubber-sheet each segment
+    to its POI anchor pair. Falls back to linear interpolation for segments
+    where OSM coverage is absent or too sparse.
+    """
+    # Find OSM index nearest each POI's longitude (monotone east→west search)
+    poi_osm_idx = []
+    prev_i = 0
+    for poi in pois:
+        target_lon = poi['geometry']['coordinates'][0]
+        best_i, best_diff = prev_i, abs(osm_chain[prev_i][0] - target_lon)
+        for i in range(prev_i, len(osm_chain)):
+            diff = abs(osm_chain[i][0] - target_lon)
+            if diff < best_diff:
+                best_diff, best_i = diff, i
+            # Stop once we've overshot the target by a full degree
+            if osm_chain[i][0] < target_lon - 1.0:
+                break
+        poi_osm_idx.append(best_i)
+        prev_i = best_i
+
+    result_coords, result_miles = [], []
+    linear_segs, osm_segs = 0, 0
+
+    for j in range(len(pois) - 1):
+        a_poi = pois[j]['geometry']['coordinates']
+        b_poi = pois[j+1]['geometry']['coordinates']
+        m0 = pois[j]['properties']['mile']
+        m1 = pois[j+1]['properties']['mile']
+        i0, i1 = poi_osm_idx[j], poi_osm_idx[j+1]
+
+        if i1 > i0 + min_nodes - 1:
+            transformed = rubbersheet_segment(osm_chain[i0:i1+1], a_poi, b_poi)
+            osm_segs += 1
+        else:
+            # Linear interpolation fallback for this segment
+            n = max(2, round((m1 - m0) * 20))
+            transformed = [[a_poi[0] + k/n*(b_poi[0]-a_poi[0]),
+                             a_poi[1] + k/n*(b_poi[1]-a_poi[1])]
+                           for k in range(n + 1)]
+            linear_segs += 1
+
+        npts = len(transformed)
+        for k, coord in enumerate(transformed[:-1]):
+            t = k / (npts - 1) if npts > 1 else 0.0
+            result_coords.append(coord)
+            result_miles.append(round(m0 + t*(m1-m0), 3))
+
+    result_coords.append(list(pois[-1]['geometry']['coordinates']))
+    result_miles.append(pois[-1]['properties']['mile'])
+
+    print(f"  Rubber-sheeted: {len(result_coords)} nodes, "
+          f"{osm_segs} OSM segments, {linear_segs} linear fallback segments")
+    return result_coords, result_miles
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
@@ -436,13 +526,28 @@ def main():
     if not pois_path.exists():
         sys.exit(f"pois.geojson not found at {pois_path}")
 
-    print("Building POI-based centerline…")
-    coords, miles = build_poi_centerline(pois_path, nodes_per_mile=20)
-    print(f"  {len(coords)} nodes, {miles[-1]:.2f} miles (expected 47.9)")
-
-    # Verify every POI snaps cleanly
     pois = json.loads(pois_path.read_text())['features']
     pois.sort(key=lambda f: f['properties']['mile'])
+
+    # ── Try OSM for real river curves ────────────────────────────────────────
+    osm_chain = []
+    source = "POI linear interpolation (OSM unavailable)"
+    try:
+        segs = fetch_osm_segs()
+        if segs:
+            osm_chain = chain_osm_east_to_west(segs, gap_m=3000)
+    except Exception as e:
+        print(f"  OSM fetch failed: {e}")
+
+    if len(osm_chain) > 50:
+        print(f"\nRubber-sheeting {len(osm_chain)} OSM nodes to {len(pois)} POI anchors…")
+        coords, miles = rubbersheet_to_pois(osm_chain, pois)
+        source = "OSM rubber-sheeted to POI anchors"
+    else:
+        print("\nOSM chain too short — falling back to linear interpolation")
+        coords, miles = build_poi_centerline(pois_path, nodes_per_mile=20)
+
+    # ── POI alignment check ───────────────────────────────────────────────────
     print("\nPOI alignment:")
     for feat in pois:
         name = feat['properties']['name']
@@ -452,7 +557,7 @@ def main():
         snap_i = min(range(len(dists)), key=lambda i: dists[i])
         print(f"  {name:<32} poi={poi_mile:5.1f}  snap={miles[snap_i]:5.1f}  dist={dists[snap_i]:.0f}m")
 
-    save_geojson(coords, miles)
+    save_geojson(coords, miles, source=source)
 
 
 if __name__ == "__main__":
