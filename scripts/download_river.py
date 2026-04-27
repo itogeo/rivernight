@@ -49,9 +49,9 @@ NHD_URL = (
     "/NHDPlus_HR/MapServer/3/query"
 )
 OVERPASS_URLS = [
-    "https://overpass.osm.ch/api/interpreter",
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass-api.de/api/interpreter",        # main; requires POST
+    "https://overpass.kumi.systems/api/interpreter",  # global CDN fallback
+    # overpass.osm.ch excluded — European mirror, no US data
 ]
 
 # Ham Rapid — OSM coverage sometimes sparse west of here; spline fills gaps
