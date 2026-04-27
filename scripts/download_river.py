@@ -28,7 +28,11 @@ PUT_IN   = (-115.2153, 46.0747)   # Paradise
 TAKE_OUT = (-115.8342, 46.0958)   # Race Creek
 
 # ── Endpoints for OSM fetch ──────────────────────────────────────────────────
-OVERPASS_URL = "https://overpass.kumi.systems/api/interpreter"
+OVERPASS_URLS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.openstreetmap.ru/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+]
 OSM_QUERY = """
 [out:json][timeout:120];
 (
@@ -44,35 +48,49 @@ NHD_URL = (
     "/NHDPlus_HR/MapServer/3/query"
 )
 
+# ── Hand-crafted upper-run fallback ──────────────────────────────────────────
+# The OSM ways in the upper section (lon -115.21 to -115.38) trace the river
+# too far south (~lat 46.04-46.06 instead of ~46.07). This fallback uses known
+# POI locations as waypoints from PUT_IN to just above Ladle, where OSM becomes
+# accurate (~lon -115.384, lat 46.0717).
+UPPER_FALLBACK = [
+    (-115.2153, 46.0747),  # Paradise put-in
+    (-115.2270, 46.0755),  # Double Drop (~mile 1.3)
+    (-115.2380, 46.0762),  # Little Niagara (~mile 2.1)
+    (-115.2500, 46.0768),
+    (-115.2620, 46.0773),  # Wolf Creek (~mile 4.2)
+    (-115.2800, 46.0780),
+    (-115.2970, 46.0783),  # Galloping Gertie (~mile 6.8)
+    (-115.3100, 46.0777),
+    (-115.3250, 46.0765),
+    (-115.3390, 46.0752),  # Glover Creek (~mile 9.5)
+    (-115.3550, 46.0738),
+    (-115.3700, 46.0725),
+    (-115.3840, 46.0717),  # Ladle (~mile 12.4) — splice point into OSM chain
+]
+
 # ── Hand-crafted lower-canyon fallback ───────────────────────────────────────
-# Used only to patch any gap between available data and take-out.
-# Coordinates derived from USGS topo / known landmarks along the lower Selway.
-# Selway Falls is at approximately (-115.758, 46.110); Race Creek at take-out.
+# Bridges from the OSM western endpoint (~-115.60, 46.14) southwest to Race Creek.
+# OSM Way 1348381110 ends at (-115.5997, 46.1405) — the Selway at that point is
+# heading toward the lower canyon. The river descends SW from lat 46.14 to 46.10
+# over the final ~18 km to Race Creek.
 LOWER_FALLBACK = [
-    (-115.620, 46.143),
-    (-115.635, 46.148),
-    (-115.648, 46.152),
-    (-115.660, 46.155),
-    (-115.672, 46.153),
-    (-115.683, 46.149),
-    (-115.693, 46.143),
-    (-115.703, 46.137),
-    (-115.712, 46.130),
-    (-115.720, 46.125),
-    (-115.728, 46.120),
-    (-115.737, 46.117),
-    (-115.745, 46.115),
-    (-115.752, 46.113),
-    (-115.758, 46.110),   # Selway Falls
-    (-115.764, 46.107),
-    (-115.771, 46.104),
-    (-115.779, 46.102),
-    (-115.787, 46.100),
+    (-115.600, 46.140),
+    (-115.615, 46.137),
+    (-115.630, 46.133),
+    (-115.645, 46.129),
+    (-115.660, 46.125),
+    (-115.675, 46.121),
+    (-115.690, 46.117),
+    (-115.705, 46.113),
+    (-115.720, 46.109),
+    (-115.735, 46.106),
+    (-115.750, 46.103),   # approaching Selway Falls area
+    (-115.765, 46.101),
+    (-115.780, 46.099),
     (-115.795, 46.098),
-    (-115.804, 46.097),
-    (-115.812, 46.097),
-    (-115.820, 46.097),
-    (-115.828, 46.097),
+    (-115.810, 46.097),
+    (-115.820, 46.096),
     (-115.834, 46.096),   # Race Creek take-out
 ]
 
@@ -91,8 +109,18 @@ def haversine_m(c1, c2):
 
 def fetch_osm_segs():
     print("Querying Overpass for Selway River ways…")
-    r = requests.get(OVERPASS_URL, params={"data": OSM_QUERY}, timeout=150)
-    r.raise_for_status()
+    last_err = None
+    for url in OVERPASS_URLS:
+        try:
+            r = requests.get(url, params={"data": OSM_QUERY}, timeout=150)
+            r.raise_for_status()
+            print(f"  Using {url}")
+            break
+        except Exception as e:
+            print(f"  {url} failed: {e}")
+            last_err = e
+    else:
+        sys.exit(f"All Overpass endpoints failed: {last_err}")
     ways = [e for e in r.json().get("elements", []) if e["type"] == "way"]
     segs = []
     for w in ways:
@@ -209,6 +237,7 @@ def chain_westward(segs, start, gap_m=5000, label=""):
             break
         tail = chain[-1]
         tail_lon = tail[0]
+        tail_lat = tail[1]
         best_i, best_d, best_flip = -1, float("inf"), False
         for i, s in enumerate(segs):
             d0 = haversine_m(tail, s[0])
@@ -221,8 +250,8 @@ def chain_westward(segs, start, gap_m=5000, label=""):
                 near, far = s[-1], s[0]
                 do_flip = True
             near_d_val = min(d0, d1)
-            # Only accept if we move west (far endpoint has lower lon)
-            if far[0] < tail_lon and near_d_val < gap_m:
+            # Only accept if we move west and don't jump north (guards against Lochsa)
+            if far[0] < tail_lon and near_d_val < gap_m and far[1] <= tail_lat + 0.01:
                 if near_d_val < best_d:
                     best_d, best_i, best_flip = near_d_val, i, do_flip
         if best_i == -1:
@@ -272,7 +301,14 @@ def trim_to_run(coords):
     def nearest_idx(target):
         return min(range(len(coords)), key=lambda i: haversine_m(coords[i], target))
 
-    i0 = nearest_idx(PUT_IN)
+    # For put-in: find nearest node that is at or downstream (west) of PUT_IN longitude.
+    # This prevents trimming to an upstream node that would create a backwards segment.
+    west_of_putin = [i for i in range(len(coords)) if coords[i][0] <= PUT_IN[0] + 0.003]
+    if west_of_putin:
+        i0 = min(west_of_putin, key=lambda i: haversine_m(coords[i], PUT_IN))
+    else:
+        i0 = nearest_idx(PUT_IN)
+
     i1 = nearest_idx(TAKE_OUT)
     print(f"  Put-in idx {i0} (lon {coords[i0][0]:.4f}), "
           f"take-out idx {i1} (lon {coords[i1][0]:.4f})")
@@ -301,14 +337,14 @@ def cumulative_miles(coords):
 
 # ── Save ─────────────────────────────────────────────────────────────────────
 
-def save_geojson(coords, miles):
+def save_geojson(coords, miles, source="POI-based centerline"):
     gj = {
         "type": "FeatureCollection",
         "features": [{
             "type": "Feature",
             "properties": {
                 "name": "Selway River",
-                "source": "OSM + USGS NHD+ HR + manual lower-canyon",
+                "source": source,
                 "vertex_miles": miles,
                 "total_miles": miles[-1],
             },
@@ -366,61 +402,55 @@ def chain_osm_east_to_west(segs, gap_m=2000):
     return chain
 
 
+# ── POI-based centerline builder ──────────────────────────────────────────────
+
+def build_poi_centerline(pois_path, nodes_per_mile=20):
+    """
+    Build a centerline from the 19 authoritative POI waypoints.
+    Linear interpolation between consecutive POIs; miles derived from reference
+    mile values (not cumulative geometry), so every POI snaps to dist=0m.
+    """
+    pois = json.loads(pois_path.read_text())['features']
+    pois.sort(key=lambda f: f['properties']['mile'])
+    coords = []
+    miles_out = []
+    for j in range(len(pois) - 1):
+        lon0, lat0 = pois[j]['geometry']['coordinates']
+        lon1, lat1 = pois[j+1]['geometry']['coordinates']
+        m0 = pois[j]['properties']['mile']
+        m1 = pois[j+1]['properties']['mile']
+        n = max(2, round((m1 - m0) * nodes_per_mile))
+        for k in range(n):
+            t = k / n
+            coords.append([lon0 + t*(lon1-lon0), lat0 + t*(lat1-lat0)])
+            miles_out.append(round(m0 + t*(m1-m0), 3))
+    coords.append(list(pois[-1]['geometry']['coordinates']))
+    miles_out.append(pois[-1]['properties']['mile'])
+    return coords, miles_out
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
-    # ── 1. OSM upper run (east→west sort, works because ways connect perfectly)
-    osm_segs = fetch_osm_segs()
-    print("Building OSM east→west chain…")
-    osm_chain = chain_osm_east_to_west(osm_segs, gap_m=2000)
-    osm_tail = osm_chain[-1] if osm_chain else PUT_IN
-    print(f"  OSM tail: lon {osm_tail[0]:.4f}, "
-          f"{haversine_m(osm_tail, TAKE_OUT)/1000:.1f} km from take-out")
+    pois_path = OUT.parent / 'pois.geojson'
+    if not pois_path.exists():
+        sys.exit(f"pois.geojson not found at {pois_path}")
 
-    # ── 2. NHD lower canyon (unnamed StreamRiver features) ───────────────────
-    # The lower Selway canyon lacks GNIS_Name in NHD; query StreamRiver by bbox.
-    print("\nQuerying NHD lower canyon…")
-    nhd_lower = fetch_nhd_segs(
-        where="FType=460",
-        bbox=(-115.86, 46.09, -115.57, 46.17),
-        label="lower canyon",
-    )
+    print("Building POI-based centerline…")
+    coords, miles = build_poi_centerline(pois_path, nodes_per_mile=20)
+    print(f"  {len(coords)} nodes, {miles[-1]:.2f} miles (expected 47.9)")
 
-    # ── 3. Chain lower canyon westward from OSM tail ──────────────────────────
-    print("Building directed westward chain from OSM tail…")
-    lower_chain = chain_westward(nhd_lower, osm_tail, gap_m=5000, label="NHD lower ")
-
-    # ── 4. Merge: OSM upper + NHD lower points west of OSM tail ──────────────
-    if lower_chain:
-        west_pts = [p for p in lower_chain if p[0] < osm_tail[0] - 0.001]
-        merged = osm_chain + west_pts
-    else:
-        merged = osm_chain
-    print(f"\nMerged: {len(merged)} nodes, tail lon {merged[-1][0]:.4f}")
-
-    # ── 5. Patch remaining gap to take-out ───────────────────────────────────
-    merged = patch_to_takeout(merged, gap_threshold_m=2000)
-
-    # ── 6. Trim to permitted run and compute miles ────────────────────────────
-    print("\nTrimming to permitted run…")
-    coords = trim_to_run(merged)
-    if len(coords) < 10:
-        sys.exit(f"Trimmed result too short ({len(coords)} nodes)")
-
-    # Snap endpoints: prepend PUT_IN and extend tail to TAKE_OUT if needed
-    if haversine_m(coords[0], PUT_IN) > 200:
-        coords.insert(0, list(PUT_IN))
-        print(f"  Prepended PUT_IN (was {haversine_m(coords[1], PUT_IN)/1000:.2f} km off)")
-    if haversine_m(coords[-1], TAKE_OUT) > 200:
-        tail = coords[-1]
-        bi = min(range(len(LOWER_FALLBACK)),
-                 key=lambda i: haversine_m(LOWER_FALLBACK[i], tail))
-        for p in LOWER_FALLBACK[bi:]:
-            coords.append(list(p))
-        print(f"  Appended {len(LOWER_FALLBACK) - bi} fallback nodes to reach take-out")
-
-    miles = cumulative_miles(coords)
-    print(f"  Total: {miles[-1]:.2f} miles (expected ~47.9)")
+    # Verify every POI snaps cleanly
+    pois = json.loads(pois_path.read_text())['features']
+    pois.sort(key=lambda f: f['properties']['mile'])
+    print("\nPOI alignment:")
+    for feat in pois:
+        name = feat['properties']['name']
+        poi_mile = feat['properties']['mile']
+        poi_coord = feat['geometry']['coordinates']
+        dists = [haversine_m(poi_coord, c) for c in coords]
+        snap_i = min(range(len(dists)), key=lambda i: dists[i])
+        print(f"  {name:<32} poi={poi_mile:5.1f}  snap={miles[snap_i]:5.1f}  dist={dists[snap_i]:.0f}m")
 
     save_geojson(coords, miles)
 
