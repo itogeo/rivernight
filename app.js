@@ -158,6 +158,7 @@ async function runLoadSequence() {
   setStageSub(1, 'Loading rapids & camps…');
   setStatus('Parsing rapids & camps…');
   const poisOk = await loadPOIData();
+  snapPOIsToRiver();
   setStage(1, 'done');
   const rapidCount = S.pois.filter(f => f.properties.type === 'rapid').length;
   const campCount  = S.pois.filter(f => f.properties.type === 'camp').length;
@@ -205,6 +206,7 @@ async function runLoadSequenceFast() {
   setStage(1, 'active');
   setProgress(55, 'POIs');
   await loadPOIData();
+  snapPOIsToRiver();
   setStage(1, 'done');
   setProgress(70, 'POIs ✓');
 
@@ -255,6 +257,26 @@ async function loadPOIData() {
     console.warn('POI data:', e.message);
     return false;
   }
+}
+
+function snapPOIsToRiver() {
+  const rc = S.riverCoords;
+  if (!rc.length || !S.pois.length) return;
+  S.pois.forEach(feat => {
+    const [plon, plat] = feat.geometry.coordinates;
+    let bestLat = rc[0][0], bestLon = rc[0][1], bestD = Infinity;
+    for (let i = 0; i < rc.length - 1; i++) {
+      const [alat, alon] = rc[i];
+      const [blat, blon] = rc[i + 1];
+      const dx = blon - alon, dy = blat - alat;
+      const len2 = dx * dx + dy * dy;
+      const t = len2 ? Math.max(0, Math.min(1, ((plon - alon) * dx + (plat - alat) * dy) / len2)) : 0;
+      const clat = alat + t * dy, clon = alon + t * dx;
+      const d = (plat - clat) ** 2 + (plon - clon) ** 2;
+      if (d < bestD) { bestD = d; bestLat = clat; bestLon = clon; }
+    }
+    feat.geometry.coordinates = [bestLon, bestLat];
+  });
 }
 
 async function fetchGaugeData() {
