@@ -59,6 +59,7 @@ const S = {
   measureLine: null,
   gaugeData: null,
   noaaForecast: null,
+  weatherData: null,
   downloadState: 'idle', // 'idle' | 'downloading' | 'done'
 };
 
@@ -165,11 +166,11 @@ async function runLoadSequence() {
   setStageSub(1, `${rapidCount} rapids · ${campCount} camps`);
   setProgress(55, 'Points of interest ✓');
 
-  // ── Stage 2: USGS gauge + NOAA forecast ─────────────
+  // ── Stage 2: USGS gauge + NOAA forecast + weather ───
   setStage(2, 'active');
   setStageSub(2, 'Fetching flow & NOAA forecast…');
   setStatus('Checking USGS gauge and NOAA discharge forecast…');
-  const [gauge, noaaFc] = await Promise.all([fetchGaugeData(), fetchNOAAForecast()]);
+  const [gauge, noaaFc] = await Promise.all([fetchGaugeData(), fetchNOAAForecast(), fetchWeather()]);
   setStage(2, 'done');
   const trendArrow = noaaFc?.trend === 'rising' ? ' ↑' : noaaFc?.trend === 'falling' ? ' ↓' : '';
   setStageSub(2, gauge ? `${gauge.cfs} cfs${trendArrow}` : 'Offline — will retry');
@@ -211,7 +212,7 @@ async function runLoadSequenceFast() {
   setProgress(70, 'POIs ✓');
 
   setStage(2, 'active');
-  const [gauge, noaaFc] = await Promise.all([fetchGaugeData(), fetchNOAAForecast()]);
+  const [gauge, noaaFc] = await Promise.all([fetchGaugeData(), fetchNOAAForecast(), fetchWeather()]);
   setStage(2, 'done');
   const trendArrow = noaaFc?.trend === 'rising' ? ' ↑' : noaaFc?.trend === 'falling' ? ' ↓' : '';
   setStageSub(2, gauge ? `${gauge.cfs} cfs${trendArrow}` : 'Offline');
@@ -277,15 +278,26 @@ function snapPOIsToRiver() {
 
 async function fetchGaugeData() {
   try {
-    const resp = await fetch(S.river.gaugeUrl, { signal: AbortSignal.timeout(6000) });
+    const url = S.river.gaugeUrl + '&period=P30D';
+    const resp = await fetch(url, { signal: AbortSignal.timeout(12000) });
     if (!resp.ok) throw new Error();
     const data = await resp.json();
     const vals = data?.value?.timeSeries?.[0]?.values?.[0]?.value;
     if (!vals?.length) throw new Error();
+
     const latest = vals[vals.length - 1];
     const cfs = parseFloat(latest.value).toLocaleString();
     const date = new Date(latest.dateTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    S.gaugeData = { cfs, date };
+
+    // Downsample to ~200 pts for graph rendering
+    const step = Math.max(1, Math.floor(vals.length / 200));
+    const history = [];
+    for (let i = 0; i < vals.length; i += step) {
+      const v = parseFloat(vals[i].value);
+      if (!isNaN(v) && v > 0) history.push({ t: new Date(vals[i].dateTime).getTime(), cfs: v });
+    }
+
+    S.gaugeData = { cfs, date, history };
     return S.gaugeData;
   } catch {
     return null;
@@ -333,7 +345,18 @@ async function fetchNOAAForecast() {
       .sort((a, b) => a.date - b.date)
       .slice(0, 4);
 
-    S.noaaForecast = { trend, days };
+    const now = Date.now();
+    const observedRaw = observed
+      .filter(d => d.secondary != null && !isNaN(parseFloat(d.secondary)))
+      .map(d => ({ t: new Date(d.validTime).getTime(), cfs: toCfs(d.secondary) }))
+      .filter(d => d.cfs > 0);
+
+    const forecastRaw = forecasts
+      .filter(d => d.secondary != null && !isNaN(parseFloat(d.secondary)))
+      .map(d => ({ t: new Date(d.validTime).getTime(), cfs: toCfs(d.secondary) }))
+      .filter(d => d.cfs > 0 && d.t > now);
+
+    S.noaaForecast = { trend, days, observedRaw, forecastRaw };
     return S.noaaForecast;
   } catch (e) {
     console.warn('[NOAA]', e.message);
@@ -341,6 +364,38 @@ async function fetchNOAAForecast() {
   }
 }
 
+
+async function fetchWeather() {
+  try {
+    const { lat, lon } = S.river.putIn;
+    const ptResp = await fetch(
+      `https://api.weather.gov/points/${lat},${lon}`,
+      { signal: AbortSignal.timeout(6000), headers: { Accept: 'application/json' } }
+    );
+    if (!ptResp.ok) throw new Error(`points ${ptResp.status}`);
+    const ptData = await ptResp.json();
+    const forecastUrl = ptData.properties?.forecast;
+    if (!forecastUrl) throw new Error('no forecast URL');
+
+    const fcResp = await fetch(forecastUrl, {
+      signal: AbortSignal.timeout(8000), headers: { Accept: 'application/json' }
+    });
+    if (!fcResp.ok) throw new Error(`forecast ${fcResp.status}`);
+    const fcData = await fcResp.json();
+
+    const periods = fcData.properties?.periods || [];
+    S.weatherData = periods.filter(p => p.isDaytime).slice(0, 7).map(p => ({
+      name: p.name,
+      short: p.shortForecast,
+      temp: p.temperature,
+      unit: p.temperatureUnit,
+    }));
+    return S.weatherData;
+  } catch (e) {
+    console.warn('[Weather]', e.message);
+    return null;
+  }
+}
 
 // ─────────────────────────────────────────────────────────
 // OFFLINE TILE DOWNLOAD
@@ -558,14 +613,33 @@ function drawPOIs() {
     const type = p.type || 'poi';
     const dColor = CLASS_COLORS[p.difficulty] || '#607D8B';
 
-    const emojiMap = { rapid: '🌊', camp: '⛺', access: '🚣', poi: '📍' };
-    const clsMap   = { rapid: 'mk-rapid', camp: 'mk-camp', access: 'mk-access', poi: 'mk-poi' };
-    const emoji = emojiMap[type] || '📍';
-    const cls   = clsMap[type]   || 'mk-poi';
+    const svgMap = {
+      rapid: `<svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+        <path d="M1 9C2.8 6.2 4.8 6.2 6.6 9C8.4 11.8 10.4 11.8 12.2 9C14 6.2 16 6.2 17.8 9" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M1 4C2.8 1.2 4.8 1.2 6.6 4C8.4 6.8 10.4 6.8 12.2 4C14 1.2 16 1.2 17.8 4" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>`,
+      camp: `<svg width="18" height="16" viewBox="0 0 18 16" fill="none">
+        <path d="M9 1.5L1 14.5H17L9 1.5Z" stroke="white" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M9 1.5V14.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M6.5 14.5C6.5 13.1 7.6 12 9 12C10.4 12 11.5 13.1 11.5 14.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>`,
+      access: `<svg width="14" height="18" viewBox="0 0 14 18" fill="none">
+        <path d="M7 1C3.7 1 1 3.7 1 7C1 11.4 7 17 7 17C7 17 13 11.4 13 7C13 3.7 10.3 1 7 1Z" stroke="white" stroke-width="1.5"/>
+        <circle cx="7" cy="7" r="2.2" fill="white"/>
+      </svg>`,
+      poi: `<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="5.5" stroke="white" stroke-width="1.4"/>
+        <path d="M7 6V11" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="7" cy="3.5" r="1" fill="white"/>
+      </svg>`,
+    };
+    const clsMap = { rapid: 'mk-rapid', camp: 'mk-camp', access: 'mk-access', poi: 'mk-poi' };
+    const svg = svgMap[type] || svgMap.poi;
+    const cls = clsMap[type] || 'mk-poi';
     const borderStyle = p.difficulty ? `border-color:${dColor}` : '';
 
     const icon = L.divIcon({
-      html: `<div class="mk ${cls}" style="${borderStyle}">${emoji}</div>`,
+      html: `<div class="mk ${cls}" style="${borderStyle}">${svg}</div>`,
       className: '', iconSize: [30,30], iconAnchor: [15,15],
     });
 
@@ -654,6 +728,8 @@ function updateGaugeUI() {
   if (gvalEl) gvalEl.textContent = txt;
   if (gpEl)   gpEl.textContent   = txt;
 
+  drawFlowGraph();
+
   // Populate NOAA daily forecast rows in the info panel
   const fc = document.getElementById('noaa-forecast-rows');
   if (!fc) return;
@@ -673,6 +749,120 @@ function updateGaugeUI() {
                   d.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     return `<div class="irow"><span class="ilbl">${label}</span><span class="ival">${d.cfs.toLocaleString()} cfs</span></div>`;
   }).join('');
+
+  updateWeatherUI();
+}
+
+function drawFlowGraph() {
+  const wrap = document.getElementById('flow-graph-wrap');
+  if (!wrap) return;
+
+  const obs = S.gaugeData?.history || [];
+  const fc  = S.noaaForecast?.forecastRaw || [];
+
+  if (!obs.length && !fc.length) {
+    wrap.innerHTML = '<div style="color:var(--sage);font-size:11px;font-family:var(--fm);padding:10px 0">Graph unavailable offline</div>';
+    return;
+  }
+
+  const allPts   = [...obs, ...fc];
+  const allCfs   = allPts.map(d => d.cfs);
+  const rawMin   = Math.min(...allCfs);
+  const rawMax   = Math.max(...allCfs);
+  const pad      = (rawMax - rawMin) * 0.08 || 200;
+  const minV     = Math.max(0, rawMin - pad);
+  const maxV     = rawMax + pad;
+
+  const tMin     = allPts[0].t;
+  const tMax     = allPts[allPts.length - 1].t;
+  const now      = Date.now();
+
+  const W = 272, H = 120;
+  const PL = 38, PR = 6, PT = 14, PB = 20;
+  const cW = W - PL - PR;
+  const cH = H - PT - PB;
+
+  const tx = t => PL + (t - tMin) / (tMax - tMin) * cW;
+  const ty = v => PT + (1 - (v - minV) / (maxV - minV)) * cH;
+
+  const toPath = pts => pts.map((d, i) => `${i ? 'L' : 'M'}${tx(d.t).toFixed(1)},${ty(d.cfs).toFixed(1)}`).join('');
+
+  const obsPath = toPath(obs);
+  const fcPath  = fc.length
+    ? (obs.length ? `M${tx(obs[obs.length-1].t).toFixed(1)},${ty(obs[obs.length-1].cfs).toFixed(1)}` : '') + toPath(fc)
+    : '';
+
+  // Today line
+  const nowX = tx(now).toFixed(1);
+  const todayLine = now > tMin && now < tMax
+    ? `<line x1="${nowX}" y1="${PT}" x2="${nowX}" y2="${PT+cH}" stroke="rgba(255,255,255,.18)" stroke-width="1" stroke-dasharray="3 3"/>`
+    : '';
+
+  // Y-axis labels (3 ticks)
+  const yTicks = [0, 0.5, 1].map(f => {
+    const v = minV + (maxV - minV) * f;
+    const y = ty(v).toFixed(1);
+    const lbl = v >= 1000 ? `${(v/1000).toFixed(1)}k` : Math.round(v).toString();
+    return `<text x="${PL-4}" y="${+y+3}" text-anchor="end" fill="var(--sage)" font-size="9" font-family="var(--fm)">${lbl}</text>
+            <line x1="${PL}" y1="${y}" x2="${PL+cW}" y2="${y}" stroke="rgba(61,92,67,.3)" stroke-width="1"/>`;
+  }).join('');
+
+  // X-axis tick labels
+  const xLabels = `
+    <text x="${PL}" y="${H-5}" fill="var(--sage)" font-size="9" font-family="var(--fm)">30d ago</text>
+    ${now > tMin && now < tMax ? `<text x="${nowX}" y="${H-5}" fill="rgba(255,255,255,.4)" font-size="9" font-family="var(--fm)" text-anchor="middle">now</text>` : ''}
+    <text x="${PL+cW}" y="${H-5}" fill="var(--sage)" font-size="9" font-family="var(--fm)" text-anchor="end">${fc.length ? '+7d' : 'now'}</text>
+  `;
+
+  wrap.innerHTML = `
+    <svg width="100%" viewBox="0 0 ${W} ${H}" style="display:block;overflow:visible">
+      <line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+cH}" stroke="var(--lichen)" stroke-width="1"/>
+      <line x1="${PL}" y1="${PT+cH}" x2="${PL+cW}" y2="${PT+cH}" stroke="var(--lichen)" stroke-width="1"/>
+      ${yTicks}
+      ${xLabels}
+      ${todayLine}
+      ${obsPath ? `<path d="${obsPath}" fill="none" stroke="var(--water)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
+      ${fcPath  ? `<path d="${fcPath}"  fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="5 3" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
+      <line x1="${PL+2}" y1="8" x2="${PL+14}" y2="8" stroke="var(--water)" stroke-width="1.8"/>
+      <text x="${PL+18}" y="11" fill="var(--sage)" font-size="9" font-family="var(--fm)">USGS observed</text>
+      ${fc.length ? `<line x1="${PL+104}" y1="8" x2="${PL+116}" y2="8" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="4 2"/>
+      <text x="${PL+120}" y="11" fill="var(--sage)" font-size="9" font-family="var(--fm)">NOAA forecast</text>` : ''}
+    </svg>
+  `;
+}
+
+function wxIcon(short) {
+  const s = (short || '').toLowerCase();
+  if (s.includes('thunder'))                             return '⛈';
+  if (s.includes('snow') || s.includes('blizzard'))     return '🌨';
+  if (s.includes('rain') || s.includes('shower') || s.includes('drizzle')) return '🌧';
+  if (s.includes('fog')  || s.includes('haze'))         return '🌫';
+  if (s.includes('partly cloudy') || s.includes('partly sunny')) return '⛅';
+  if (s.includes('mostly cloudy') || s.includes('cloudy'))       return '☁️';
+  if (s.includes('sunny') || s.includes('clear'))       return '☀️';
+  return '🌤';
+}
+
+function updateWeatherUI() {
+  const el = document.getElementById('weather-grid');
+  if (!el) return;
+
+  const days = S.weatherData;
+  if (!days?.length) {
+    el.innerHTML = '<div class="irow"><span class="ilbl" style="color:var(--sage)">Unavailable offline</span></div>';
+    el.className = '';
+    return;
+  }
+
+  el.className = 'wx-grid';
+  el.innerHTML = days.map(d => `
+    <div class="wx-day">
+      <div class="wx-day-name">${d.name.replace(' Night','').replace('This ','').substring(0,3)}</div>
+      <div class="wx-icon">${wxIcon(d.short)}</div>
+      <div class="wx-temp">${d.temp}°</div>
+      <div class="wx-desc">${d.short.split(' ').slice(0,2).join(' ')}</div>
+    </div>
+  `).join('');
 }
 
 // ─────────────────────────────────────────────────────────

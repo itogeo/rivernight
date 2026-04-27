@@ -442,11 +442,22 @@
     }
 
     /* markers */
-    .mk { width:30px; height:30px; border-radius:50%; background:var(--bark); display:flex; align-items:center; justify-content:center; font-size:13px; box-shadow:0 2px 8px rgba(0,0,0,.5); cursor:pointer; }
-    .mk-rapid { border: 2px solid var(--rapid-c); }
-    .mk-camp  { border: 2px solid var(--water); }
-    .mk-poi   { border: 2px solid var(--sage); width:28px; height:28px; }
-    .mk-access { border-radius:8px; background:rgba(42,63,46,.95); border:2px solid var(--amber); width:32px; height:32px; font-size:14px; }
+    .mk { width:30px; height:30px; border-radius:50%; background:var(--bark); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.5); cursor:pointer; }
+    .mk-rapid  { border: 2px solid var(--rapid-c); }
+    .mk-camp   { border: 2px solid var(--water); }
+    .mk-poi    { border: 2px solid var(--sage); width:28px; height:28px; }
+    .mk-access { border-radius:8px; background:rgba(42,63,46,.95); border:2px solid var(--amber); width:32px; height:32px; }
+
+    /* flow graph */
+    #flow-graph-wrap { margin: 10px 0 2px; }
+
+    /* weather grid */
+    .wx-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-top:6px; }
+    .wx-day  { display:flex; flex-direction:column; align-items:center; background:var(--moss); border-radius:6px; padding:5px 2px; }
+    .wx-day-name { font-family:var(--fm); font-size:8px; color:var(--sage); margin-bottom:2px; text-transform:uppercase; letter-spacing:.04em; }
+    .wx-icon { font-size:15px; line-height:1; margin-bottom:2px; }
+    .wx-temp { font-size:11px; font-weight:700; color:var(--paper); }
+    .wx-desc { font-size:8px; color:var(--sage); text-align:center; line-height:1.3; margin-top:2px; }
 
     .gps-wrap { width:20px; height:20px; position:relative; display:flex; align-items:center; justify-content:center; }
     .gps-core { width:12px; height:12px; background:var(--water-lt); border:2px solid #fff; border-radius:50%; position:absolute; box-shadow:0 0 8px rgba(142,205,224,.8); }
@@ -786,12 +797,17 @@
           <div class="icard-ttl">Live Conditions</div>
           <div class="irow"><span class="ilbl">Flow (Lowell)</span><span class="gv ival" id="gauge-panel">—</span></div>
           <div class="irow"><span class="ilbl">Gauge site</span><span class="ival">#13336500</span></div>
+          <div id="flow-graph-wrap"><div class="irow"><span class="ilbl" style="color:var(--sage)">Loading graph…</span></div></div>
         </div>
         <div class="icard">
           <div class="icard-ttl">Flow Forecast · NOAA</div>
           <div id="noaa-forecast-rows">
             <div class="irow"><span class="ilbl" style="color:var(--sage)">Loading…</span></div>
           </div>
+        </div>
+        <div class="icard">
+          <div class="icard-ttl">7-Day Forecast · NWS</div>
+          <div id="weather-grid"><div class="irow"><span class="ilbl" style="color:var(--sage)">Loading…</span></div></div>
         </div>
         <div class="icard">
           <div class="icard-ttl">Offline Maps</div>
@@ -810,6 +826,10 @@
           <div class="icard-ttl">About</div>
           <div class="irow"><span class="ilbl">Version</span><span class="ival">1.0.0</span></div>
           <div class="irow"><span class="ilbl">License</span><span class="ival">MIT open source</span></div>
+          <div class="irow"><span class="ilbl">POI data</span><span class="ival" style="font-size:11px">© Rivermaps LLC · Selway 2nd Ed.</span></div>
+          <div class="irow"><span class="ilbl">Flow data</span><span class="ival" style="font-size:11px">USGS · NOAA NWPS</span></div>
+          <div class="irow"><span class="ilbl">Weather</span><span class="ival" style="font-size:11px">NOAA / NWS</span></div>
+          <div class="irow"><span class="ilbl">Imagery</span><span class="ival" style="font-size:11px">© Esri, Maxar</span></div>
         </div>
       </div>
       <div class="tpane" id="tab-rapids">
