@@ -3,14 +3,15 @@
 download_river.py — Build Selway River centerline.
 
 Sources:
-  1. OSM Overpass  — upper run, high-quality detail
-  2. USGS NHD+ HR  — extends coverage into lower canyon
-  3. Hand-crafted fallback coords — fills remaining gap to take-out
+  Upper run (Paradise → Ham Rapid, miles 0–26.5):
+    OSM relation 17877072 — all ways filtered to canyon lat band (< 46.12)
+  Lower run (Ham Rapid → Race Creek, miles 26.5–47.9):
+    Catmull-Rom spline through POI anchors (OSM has nothing here)
 
-Run once from the repo root:
+Mileage: pure arc-length scaled to 47.9 mi. No rubber-sheeting.
+
+Run from repo root:
     python3 scripts/download_river.py
-
-Requires: requests (conda install -n geodata requests -c conda-forge)
 """
 
 import json, math, sys
@@ -21,98 +22,56 @@ try:
 except ImportError:
     sys.exit("Install requests: conda install -n geodata requests -c conda-forge")
 
-OUT = Path(__file__).parent.parent / "data" / "river_centerline.geojson"
+OUT       = Path(__file__).parent.parent / "data" / "river_centerline.geojson"
+POIS_PATH = Path(__file__).parent.parent / "data" / "pois.geojson"
 
-# ── Put-in / take-out (lon, lat) ────────────────────────────────────────────
-PUT_IN   = (-115.2153, 46.0747)   # Paradise
-TAKE_OUT = (-115.8342, 46.0958)   # Race Creek
+PUT_IN      = (-115.2153, 46.0747)   # Paradise Launch, mile 0
+TAKE_OUT    = (-115.8342, 46.0958)   # Race Creek, mile 47.9
+TOTAL_MILES = 47.9
 
-# ── Endpoints for OSM fetch ──────────────────────────────────────────────────
-OVERPASS_URLS = [
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.openstreetmap.ru/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-]
-OSM_QUERY = """
-[out:json][timeout:120];
-(
-  way["waterway"="river"]["name"="Selway River"]
-    (45.80,-116.30,46.40,-114.80);
-);
-out body geom;
-"""
-
-# ── NHD service ───────────────────────────────────────────────────────────────
+OSM_RELATION_ID = 17877072
+# Strip nodes north of this lat — filters out the Lochsa confluence tangent
+CANYON_LAT_MAX = 46.12
+# NHD fallback if OSM relation fetch fails
 NHD_URL = (
     "https://hydro.nationalmap.gov/arcgis/rest/services"
     "/NHDPlus_HR/MapServer/3/query"
 )
-
-# ── Hand-crafted upper-run fallback ──────────────────────────────────────────
-# The OSM ways in the upper section (lon -115.21 to -115.38) trace the river
-# too far south (~lat 46.04-46.06 instead of ~46.07). This fallback uses known
-# POI locations as waypoints from PUT_IN to just above Ladle, where OSM becomes
-# accurate (~lon -115.384, lat 46.0717).
-UPPER_FALLBACK = [
-    (-115.2153, 46.0747),  # Paradise put-in
-    (-115.2270, 46.0755),  # Double Drop (~mile 1.3)
-    (-115.2380, 46.0762),  # Little Niagara (~mile 2.1)
-    (-115.2500, 46.0768),
-    (-115.2620, 46.0773),  # Wolf Creek (~mile 4.2)
-    (-115.2800, 46.0780),
-    (-115.2970, 46.0783),  # Galloping Gertie (~mile 6.8)
-    (-115.3100, 46.0777),
-    (-115.3250, 46.0765),
-    (-115.3390, 46.0752),  # Glover Creek (~mile 9.5)
-    (-115.3550, 46.0738),
-    (-115.3700, 46.0725),
-    (-115.3840, 46.0717),  # Ladle (~mile 12.4) — splice point into OSM chain
+OVERPASS_URLS = [
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass-api.de/api/interpreter",
 ]
+# Ham Rapid — where OSM coverage ends, spline takes over
+SPLINE_START_MILE = 26.5
 
-# ── Hand-crafted lower-canyon fallback ───────────────────────────────────────
-# Bridges from the OSM western endpoint (~-115.60, 46.14) southwest to Race Creek.
-# OSM Way 1348381110 ends at (-115.5997, 46.1405) — the Selway at that point is
-# heading toward the lower canyon. The river descends SW from lat 46.14 to 46.10
-# over the final ~18 km to Race Creek.
-LOWER_FALLBACK = [
-    (-115.600, 46.140),
-    (-115.615, 46.137),
-    (-115.630, 46.133),
-    (-115.645, 46.129),
-    (-115.660, 46.125),
-    (-115.675, 46.121),
-    (-115.690, 46.117),
-    (-115.705, 46.113),
-    (-115.720, 46.109),
-    (-115.735, 46.106),
-    (-115.750, 46.103),   # approaching Selway Falls area
-    (-115.765, 46.101),
-    (-115.780, 46.099),
-    (-115.795, 46.098),
-    (-115.810, 46.097),
-    (-115.820, 46.096),
-    (-115.834, 46.096),   # Race Creek take-out
-]
 
+# ── Geometry ──────────────────────────────────────────────────────────────────
 
 def haversine_m(c1, c2):
-    lon1, lat1 = c1;  lon2, lat2 = c2
+    lon1, lat1 = c1; lon2, lat2 = c2
     R = 6_371_000
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
     dlam = math.radians(lon2 - lon1)
     a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlam/2)**2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
-# ── OSM ───────────────────────────────────────────────────────────────────────
+# ── OSM relation fetch ────────────────────────────────────────────────────────
 
-def fetch_osm_segs():
-    print("Querying Overpass for Selway River ways…")
+def fetch_osm_relation(relation_id):
+    """Fetch all ways in an OSM relation, return as list of coord-lists.
+    Nodes north of CANYON_LAT_MAX are dropped to remove confluence artifacts."""
+    query = f"""
+[out:json][timeout:120];
+relation({relation_id});
+way(r);
+out body geom;
+"""
     last_err = None
     for url in OVERPASS_URLS:
         try:
-            r = requests.get(url, params={"data": OSM_QUERY}, timeout=150)
+            r = requests.get(url, params={"data": query}, timeout=150)
             r.raise_for_status()
             print(f"  Using {url}")
             break
@@ -120,29 +79,37 @@ def fetch_osm_segs():
             print(f"  {url} failed: {e}")
             last_err = e
     else:
-        sys.exit(f"All Overpass endpoints failed: {last_err}")
-    ways = [e for e in r.json().get("elements", []) if e["type"] == "way"]
+        print(f"  All Overpass endpoints failed: {last_err}")
+        return []
+
+    elements = [e for e in r.json().get("elements", []) if e["type"] == "way"]
     segs = []
-    for w in ways:
-        coords = [(g["lon"], g["lat"]) for g in w.get("geometry", [])
-                  if "lon" in g and "lat" in g]
+    for e in elements:
+        coords = [
+            (g["lon"], g["lat"])
+            for g in e.get("geometry", [])
+            if "lon" in g and "lat" in g
+            and g["lat"] < CANYON_LAT_MAX       # drop confluence tangent
+            and g["lon"] < PUT_IN[0] + 0.05     # drop headwaters east of put-in
+        ]
         if len(coords) >= 2:
             segs.append(coords)
-    print(f"  {len(ways)} ways → {len(segs)} segments")
+    print(f"  Relation {relation_id}: {len(elements)} ways → "
+          f"{len(segs)} usable canyon segments")
     return segs
 
 
-# ── NHD ───────────────────────────────────────────────────────────────────────
+# ── NHD fallback ──────────────────────────────────────────────────────────────
 
-def fetch_nhd_segs(where, bbox, label):
-    w, s, e, n = bbox
+def fetch_nhd_named_selway():
+    print("Querying NHD+ HR for 'Selway River' named segments…")
     params = {
-        "where": where,
-        "geometry": f"{w},{s},{e},{n}",
+        "where": "GNIS_Name = 'Selway River'",
+        "geometry": "-116.10,45.80,-115.00,46.40",
         "geometryType": "esriGeometryEnvelope",
         "inSR": "4326",
         "spatialRel": "esriSpatialRelIntersects",
-        "outFields": "OBJECTID",
+        "outFields": "OBJECTID,GNIS_Name,StreamOrde",
         "returnGeometry": "true",
         "f": "geojson",
         "outSR": "4326",
@@ -159,29 +126,29 @@ def fetch_nhd_segs(where, bbox, label):
         coords = [(c[0], c[1]) for c in g["coordinates"] if len(c) >= 2]
         if len(coords) >= 2:
             segs.append(coords)
-    print(f"  NHD {label}: {len(feats)} features → {len(segs)} segments")
+    print(f"  {len(feats)} features → {len(segs)} usable segments")
     return segs
 
 
-# ── Greedy chain (standard — tight gap) ──────────────────────────────────────
+# ── Westward-only chain ───────────────────────────────────────────────────────
 
-def chain_tight(segs, anchor, gap_m=500, label=""):
-    """Chain segments starting from the one nearest `anchor`.
-    Stops when the nearest unused segment is > gap_m away."""
+def chain_westward(segs, start_anchor, gap_m=2000, label=""):
+    """Chain segments starting near start_anchor, only accepting segments
+    whose far end is west (lower longitude) of the current tail."""
     if not segs:
         return []
     segs = [list(s) for s in segs]
 
-    def near_d(seg):
-        return min(haversine_m(anchor, seg[0]), haversine_m(anchor, seg[-1]))
+    def dist_to(seg):
+        return min(haversine_m(start_anchor, seg[0]), haversine_m(start_anchor, seg[-1]))
 
-    segs.sort(key=near_d)
+    segs.sort(key=dist_to)
     first = segs.pop(0)
-    if haversine_m(anchor, first[-1]) < haversine_m(anchor, first[0]):
+    if haversine_m(start_anchor, first[-1]) < haversine_m(start_anchor, first[0]):
         first.reverse()
-    chain = first
+    chain = first[:]
 
-    for _ in range(len(segs) * 3 + 10):
+    for _ in range(len(segs) * 4 + 20):
         if not segs:
             break
         tail = chain[-1]
@@ -189,155 +156,136 @@ def chain_tight(segs, anchor, gap_m=500, label=""):
         for i, s in enumerate(segs):
             d0 = haversine_m(tail, s[0])
             d1 = haversine_m(tail, s[-1])
-            if d0 < best_d:
-                best_d, best_i, flip = d0, i, False
-            if d1 < best_d:
-                best_d, best_i, flip = d1, i, True
-        if best_d > gap_m:
+            if d0 <= d1:
+                near_d, far, do_flip = d0, s[-1], False
+            else:
+                near_d, far, do_flip = d1, s[0],  True
+            if far[0] < tail[0] and near_d < gap_m and near_d < best_d:
+                best_d, best_i, flip = near_d, i, do_flip
+        if best_i == -1:
             break
         seg = segs.pop(best_i)
         if flip:
             seg.reverse()
-        if haversine_m(chain[-1], seg[0]) < 20:
+        if haversine_m(chain[-1], seg[0]) < 30:
             chain.extend(seg[1:])
         else:
             chain.extend(seg)
 
     d_tail = haversine_m(chain[-1], TAKE_OUT)
-    print(f"  {label}chain: {len(chain)} nodes, "
-          f"tail {d_tail/1000:.1f} km from take-out "
-          f"(lon {chain[-1][0]:.4f})")
+    print(f"  {label}chain: {len(chain)} nodes  "
+          f"lon {chain[0][0]:.4f} → {chain[-1][0]:.4f}  "
+          f"tail {d_tail/1000:.1f} km from take-out")
     return chain
 
 
-# ── Directed westward chain (for fragmented lower canyon) ────────────────────
+# ── Catmull-Rom spline ────────────────────────────────────────────────────────
 
-def chain_westward(segs, start, gap_m=5000, label=""):
-    """
-    Greedy chain that only accepts segments whose FAR endpoint
-    (from the current tail) is at lower longitude than the tail.
-    This ensures we always make westward progress, preventing the
-    algorithm from following north/south tributaries.
-    """
-    if not segs:
-        return []
-    segs = [list(s) for s in segs]
-
-    def near_d(seg):
-        return min(haversine_m(start, seg[0]), haversine_m(start, seg[-1]))
-
-    segs.sort(key=near_d)
-    first = segs.pop(0)
-    if haversine_m(start, first[-1]) < haversine_m(start, first[0]):
-        first.reverse()
-    chain = first
-
-    for _ in range(500):
-        if not segs:
-            break
-        tail = chain[-1]
-        tail_lon = tail[0]
-        tail_lat = tail[1]
-        best_i, best_d, best_flip = -1, float("inf"), False
-        for i, s in enumerate(segs):
-            d0 = haversine_m(tail, s[0])
-            d1 = haversine_m(tail, s[-1])
-            # Near end is s[0] if d0 < d1, far end is s[-1] (and vice versa)
-            if d0 <= d1:
-                near, far = s[0], s[-1]
-                do_flip = False
-            else:
-                near, far = s[-1], s[0]
-                do_flip = True
-            near_d_val = min(d0, d1)
-            # Only accept if we move west and don't jump north (guards against Lochsa)
-            if far[0] < tail_lon and near_d_val < gap_m and far[1] <= tail_lat + 0.01:
-                if near_d_val < best_d:
-                    best_d, best_i, best_flip = near_d_val, i, do_flip
-        if best_i == -1:
-            break
-        seg = segs.pop(best_i)
-        if best_flip:
-            seg.reverse()
-        if haversine_m(chain[-1], seg[0]) < 50:
-            chain.extend(seg[1:])
-        else:
-            chain.extend(seg)
-
-    d_tail = haversine_m(chain[-1], TAKE_OUT)
-    print(f"  {label}westward chain: {len(chain)} nodes, "
-          f"tail {d_tail/1000:.1f} km from take-out "
-          f"(lon {chain[-1][0]:.4f})")
-    return chain
+def catmull_rom_spline(points, n_per_seg=40):
+    if len(points) < 2:
+        return list(points)
+    pts_ext = [points[0]] + list(points) + [points[-1]]
+    result = []
+    for i in range(1, len(pts_ext) - 2):
+        p0, p1, p2, p3 = pts_ext[i-1], pts_ext[i], pts_ext[i+1], pts_ext[i+2]
+        for k in range(n_per_seg):
+            t  = k / n_per_seg
+            t2 = t * t
+            t3 = t2 * t
+            lon = 0.5 * (
+                2*p1[0] + (-p0[0]+p2[0])*t
+                + (2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2
+                + (-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3
+            )
+            lat = 0.5 * (
+                2*p1[1] + (-p0[1]+p2[1])*t
+                + (2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2
+                + (-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3
+            )
+            result.append((lon, lat))
+    result.append(tuple(points[-1]))
+    return result
 
 
-# ── Patch gap to take-out ─────────────────────────────────────────────────────
-
-def patch_to_takeout(chain, gap_threshold_m=3000):
-    """
-    If the chain tail is more than gap_threshold_m from the take-out,
-    splice in the hand-crafted fallback from the nearest fallback point onward.
-    """
-    tail = chain[-1]
-    d = haversine_m(tail, TAKE_OUT)
-    if d <= gap_threshold_m:
-        print(f"  Tail is {d/1000:.1f} km from take-out — no patch needed")
-        return chain
-    print(f"  Tail is {d/1000:.1f} km from take-out — patching with fallback")
-    # Find fallback splice point nearest to current tail
-    bi = min(range(len(LOWER_FALLBACK)),
-             key=lambda i: haversine_m(LOWER_FALLBACK[i], tail))
-    # Only append fallback from that point westward
-    patch = [p for p in LOWER_FALLBACK[bi:] if p[0] < tail[0] + 0.01]
-    chain.extend(patch)
-    d2 = haversine_m(chain[-1], TAKE_OUT)
-    print(f"  After patch: tail {d2/1000:.1f} km from take-out")
-    return chain
-
-
-# ── Trim to permitted run ─────────────────────────────────────────────────────
+# ── Trim ──────────────────────────────────────────────────────────────────────
 
 def trim_to_run(coords):
     def nearest_idx(target):
         return min(range(len(coords)), key=lambda i: haversine_m(coords[i], target))
-
-    # For put-in: find nearest node that is at or downstream (west) of PUT_IN longitude.
-    # This prevents trimming to an upstream node that would create a backwards segment.
-    west_of_putin = [i for i in range(len(coords)) if coords[i][0] <= PUT_IN[0] + 0.003]
-    if west_of_putin:
-        i0 = min(west_of_putin, key=lambda i: haversine_m(coords[i], PUT_IN))
-    else:
-        i0 = nearest_idx(PUT_IN)
-
+    i0 = nearest_idx(PUT_IN)
     i1 = nearest_idx(TAKE_OUT)
-    print(f"  Put-in idx {i0} (lon {coords[i0][0]:.4f}), "
-          f"take-out idx {i1} (lon {coords[i1][0]:.4f})")
-
-    if i0 == i1:
-        sys.exit("Put-in and take-out map to same node")
-
+    d0 = haversine_m(PUT_IN,   coords[i0])
+    d1 = haversine_m(TAKE_OUT, coords[i1])
+    print(f"  Put-in  snap: lon={coords[i0][0]:.4f} lat={coords[i0][1]:.4f} dist={d0:.0f}m")
+    print(f"  Take-out snap: lon={coords[i1][0]:.4f} lat={coords[i1][1]:.4f} dist={d1:.0f}m")
     if i0 > i1:
-        coords.reverse()
+        coords = list(reversed(coords))
         n = len(coords)
-        i0, i1 = n - 1 - i0, n - 1 - i1
+        i0, i1 = n-1-i0, n-1-i1
+    return list(coords[i0 : i1+1])
 
-    return coords[i0: i1 + 1]
 
+# ── Mileage ───────────────────────────────────────────────────────────────────
 
-# ── Miles ─────────────────────────────────────────────────────────────────────
+def calibrated_arc_miles(coords, anchor_pois):
+    """Piecewise arc-length mileage calibrated at each anchor POI.
 
-def cumulative_miles(coords):
-    miles = [0.0]
-    total = 0.0
+    Geometry (lat/lon) is never touched. Only the mile parameter is adjusted
+    so that each POI's nearest chain node aligns with its guidebook mile.
+    Between anchors, miles are proportional to physical arc-length.
+    """
+    arc_m = [0.0]
     for i in range(1, len(coords)):
-        total += haversine_m(coords[i - 1], coords[i]) / 1609.344
-        miles.append(round(total, 3))
-    return miles
+        arc_m.append(arc_m[-1] + haversine_m(coords[i-1], coords[i]))
+
+    # Find nearest chain index for each guidebook POI
+    pairs = []
+    for feat in anchor_pois:
+        coord = feat['geometry']['coordinates']
+        mile  = feat['properties']['mile']
+        idx   = min(range(len(coords)), key=lambda i: haversine_m(coords[i], tuple(coord)))
+        pairs.append((idx, mile))
+
+    # Always include the exact endpoints as anchors
+    pairs.append((0, 0.0))
+    pairs.append((len(coords) - 1, TOTAL_MILES))
+
+    # Sort by chain index; keep first occurrence when indices collide
+    pairs.sort()
+    mono = [pairs[0]]
+    for idx, mile in pairs[1:]:
+        if idx > mono[-1][0]:
+            mono.append((idx, mile))
+    pairs = mono
+
+    result = [0.0] * len(coords)
+    for k in range(len(pairs) - 1):
+        i0, m0 = pairs[k]
+        i1, m1 = pairs[k + 1]
+        a0, a1 = arc_m[i0], arc_m[i1]
+        for i in range(i0, i1 + 1):
+            result[i] = m0 if a1 == a0 else m0 + (arc_m[i] - a0) / (a1 - a0) * (m1 - m0)
+
+    print(f"  Raw arc: {arc_m[-1]/1609.344:.2f} mi  ({len(pairs)} calibration anchors)")
+    return [round(m, 3) for m in result]
 
 
-# ── Save ─────────────────────────────────────────────────────────────────────
+# ── Report ────────────────────────────────────────────────────────────────────
 
-def save_geojson(coords, miles, source="POI-based centerline"):
+def report_poi_snaps(coords, miles, pois):
+    print("\nPOI snap report:")
+    for feat in pois:
+        pc   = feat['geometry']['coordinates']
+        name = feat['properties']['name']
+        ref  = feat['properties']['mile']
+        idx  = min(range(len(coords)), key=lambda i: haversine_m(pc, coords[i]))
+        dist = haversine_m(pc, coords[idx])
+        print(f"  {name:<32} ref={ref:5.1f}  snap={miles[idx]:5.1f}  dist={dist:.0f}m")
+
+
+# ── Save ──────────────────────────────────────────────────────────────────────
+
+def save_geojson(coords, miles, source):
     gj = {
         "type": "FeatureCollection",
         "features": [{
@@ -356,208 +304,74 @@ def save_geojson(coords, miles, source="POI-based centerline"):
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(gj, indent=2))
-    print(f"\n✓ Saved {len(coords)} nodes, {miles[-1]:.2f} miles → {OUT}")
-
-
-# ── East-to-west OSM chain ────────────────────────────────────────────────────
-
-def chain_osm_east_to_west(segs, gap_m=2000):
-    """
-    Sort segments by their easternmost longitude (descending) and chain
-    them west, which is the direction the Selway flows (Paradise→Race Creek).
-    """
-    if not segs:
-        return []
-    segs = [list(s) for s in segs]
-    # Orient each segment so seg[0] is its eastern (higher-lon) end
-    for i, seg in enumerate(segs):
-        if seg[-1][0] > seg[0][0]:
-            segs[i] = list(reversed(seg))
-    # Sort by easternmost lon descending (chain east → west)
-    segs.sort(key=lambda s: -s[0][0])
-    chain = segs.pop(0)
-    for _ in range(len(segs) * 3 + 10):
-        if not segs:
-            break
-        tail = chain[-1]
-        best_i, best_d, flip = -1, float("inf"), False
-        for i, s in enumerate(segs):
-            d0 = haversine_m(tail, s[0])
-            d1 = haversine_m(tail, s[-1])
-            if d0 < best_d:
-                best_d, best_i, flip = d0, i, False
-            if d1 < best_d:
-                best_d, best_i, flip = d1, i, True
-        if best_d > gap_m:
-            break
-        seg = segs.pop(best_i)
-        if flip:
-            seg.reverse()
-        if haversine_m(chain[-1], seg[0]) < 20:
-            chain.extend(seg[1:])
-        else:
-            chain.extend(seg)
-    print(f"  OSM chain: {len(chain)} nodes, "
-          f"lon {chain[0][0]:.4f} → {chain[-1][0]:.4f}")
-    return chain
-
-
-# ── POI-based linear fallback ─────────────────────────────────────────────────
-
-def build_poi_centerline(pois_path, nodes_per_mile=20):
-    """Linear interpolation fallback — used when OSM fetch fails."""
-    pois = json.loads(pois_path.read_text())['features']
-    pois.sort(key=lambda f: f['properties']['mile'])
-    coords = []
-    miles_out = []
-    for j in range(len(pois) - 1):
-        lon0, lat0 = pois[j]['geometry']['coordinates']
-        lon1, lat1 = pois[j+1]['geometry']['coordinates']
-        m0 = pois[j]['properties']['mile']
-        m1 = pois[j+1]['properties']['mile']
-        n = max(2, round((m1 - m0) * nodes_per_mile))
-        for k in range(n):
-            t = k / n
-            coords.append([lon0 + t*(lon1-lon0), lat0 + t*(lat1-lat0)])
-            miles_out.append(round(m0 + t*(m1-m0), 3))
-    coords.append(list(pois[-1]['geometry']['coordinates']))
-    miles_out.append(pois[-1]['properties']['mile'])
-    return coords, miles_out
-
-
-# ── Rubber-sheeting ───────────────────────────────────────────────────────────
-
-def rubbersheet_segment(osm_sub, a_poi, b_poi):
-    """
-    Apply 2D rotation+scale affine so osm_sub[0]→a_poi, osm_sub[-1]→b_poi.
-    Intermediate points keep their relative curve shape.
-    """
-    if len(osm_sub) < 2:
-        return [list(a_poi), list(b_poi)]
-
-    a_osm = osm_sub[0]
-    b_osm = osm_sub[-1]
-    osm_dx = b_osm[0] - a_osm[0]
-    osm_dy = b_osm[1] - a_osm[1]
-    poi_dx = b_poi[0] - a_poi[0]
-    poi_dy = b_poi[1] - a_poi[1]
-    osm_len_sq = osm_dx**2 + osm_dy**2
-
-    if osm_len_sq < 1e-14:
-        n = len(osm_sub)
-        return [[a_poi[0] + k/(n-1)*(b_poi[0]-a_poi[0]),
-                 a_poi[1] + k/(n-1)*(b_poi[1]-a_poi[1])]
-                for k in range(n)]
-
-    # M @ [osm_dx, osm_dy]^T = [poi_dx, poi_dy]^T  (rotation + uniform scale)
-    ra = (poi_dx*osm_dx + poi_dy*osm_dy) / osm_len_sq
-    rb = (poi_dy*osm_dx - poi_dx*osm_dy) / osm_len_sq
-
-    result = []
-    for p in osm_sub:
-        dx = p[0] - a_osm[0]
-        dy = p[1] - a_osm[1]
-        result.append([a_poi[0] + ra*dx - rb*dy,
-                       a_poi[1] + rb*dx + ra*dy])
-    return result
-
-
-def rubbersheet_to_pois(osm_chain, pois, min_nodes=3):
-    """
-    Split OSM chain into segments by POI longitude, rubber-sheet each segment
-    to its POI anchor pair. Falls back to linear interpolation for segments
-    where OSM coverage is absent or too sparse.
-    """
-    # Find OSM index nearest each POI's longitude (monotone east→west search)
-    poi_osm_idx = []
-    prev_i = 0
-    for poi in pois:
-        target_lon = poi['geometry']['coordinates'][0]
-        best_i, best_diff = prev_i, abs(osm_chain[prev_i][0] - target_lon)
-        for i in range(prev_i, len(osm_chain)):
-            diff = abs(osm_chain[i][0] - target_lon)
-            if diff < best_diff:
-                best_diff, best_i = diff, i
-            # Stop once we've overshot the target by a full degree
-            if osm_chain[i][0] < target_lon - 1.0:
-                break
-        poi_osm_idx.append(best_i)
-        prev_i = best_i
-
-    result_coords, result_miles = [], []
-    linear_segs, osm_segs = 0, 0
-
-    for j in range(len(pois) - 1):
-        a_poi = pois[j]['geometry']['coordinates']
-        b_poi = pois[j+1]['geometry']['coordinates']
-        m0 = pois[j]['properties']['mile']
-        m1 = pois[j+1]['properties']['mile']
-        i0, i1 = poi_osm_idx[j], poi_osm_idx[j+1]
-
-        if i1 > i0 + min_nodes - 1:
-            transformed = rubbersheet_segment(osm_chain[i0:i1+1], a_poi, b_poi)
-            osm_segs += 1
-        else:
-            # Linear interpolation fallback for this segment
-            n = max(2, round((m1 - m0) * 20))
-            transformed = [[a_poi[0] + k/n*(b_poi[0]-a_poi[0]),
-                             a_poi[1] + k/n*(b_poi[1]-a_poi[1])]
-                           for k in range(n + 1)]
-            linear_segs += 1
-
-        npts = len(transformed)
-        for k, coord in enumerate(transformed[:-1]):
-            t = k / (npts - 1) if npts > 1 else 0.0
-            result_coords.append(coord)
-            result_miles.append(round(m0 + t*(m1-m0), 3))
-
-    result_coords.append(list(pois[-1]['geometry']['coordinates']))
-    result_miles.append(pois[-1]['properties']['mile'])
-
-    print(f"  Rubber-sheeted: {len(result_coords)} nodes, "
-          f"{osm_segs} OSM segments, {linear_segs} linear fallback segments")
-    return result_coords, result_miles
+    print(f"\n✓ Saved {len(coords)} nodes, {miles[-1]:.2f} mi → {OUT}")
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
-    pois_path = OUT.parent / 'pois.geojson'
-    if not pois_path.exists():
-        sys.exit(f"pois.geojson not found at {pois_path}")
-
-    pois = json.loads(pois_path.read_text())['features']
+    if not POIS_PATH.exists():
+        sys.exit(f"pois.geojson not found at {POIS_PATH}")
+    pois = json.loads(POIS_PATH.read_text())['features']
     pois.sort(key=lambda f: f['properties']['mile'])
+    lower_pois = [p for p in pois if p['properties']['mile'] >= SPLINE_START_MILE]
 
-    # ── Try OSM for real river curves ────────────────────────────────────────
-    osm_chain = []
-    source = "POI linear interpolation (OSM unavailable)"
+    upper_chain = []
+    source_upper = ""
+
+    # ── Step 1: OSM relation for upper canyon ─────────────────────────────────
+    print(f"\n── Step 1: OSM relation {OSM_RELATION_ID} (upper canyon) ──")
     try:
-        segs = fetch_osm_segs()
-        if segs:
-            osm_chain = chain_osm_east_to_west(segs, gap_m=3000)
+        osm_segs = fetch_osm_relation(OSM_RELATION_ID)
+        if osm_segs:
+            upper_chain = chain_westward(osm_segs, PUT_IN, gap_m=3000, label="OSM ")
+            source_upper = "OSM relation 17877072"
     except Exception as e:
-        print(f"  OSM fetch failed: {e}")
+        print(f"  OSM failed: {e}")
 
-    if len(osm_chain) > 50:
-        print(f"\nRubber-sheeting {len(osm_chain)} OSM nodes to {len(pois)} POI anchors…")
-        coords, miles = rubbersheet_to_pois(osm_chain, pois)
-        source = "OSM rubber-sheeted to POI anchors"
+    # ── Step 2: NHD fallback if OSM failed ───────────────────────────────────
+    if not upper_chain:
+        print("\n── Step 2: NHD+ HR fallback ──")
+        try:
+            nhd_segs = fetch_nhd_named_selway()
+            if nhd_segs:
+                upper_chain = chain_westward(nhd_segs, PUT_IN, gap_m=2000, label="NHD ")
+                source_upper = "NHD+ HR"
+        except Exception as e:
+            print(f"  NHD failed: {e}")
+
+    # ── Step 3: Catmull-Rom lower canyon (OSM has nothing here) ───────────────
+    print(f"\n── Step 3: Catmull-Rom lower canyon "
+          f"(miles {SPLINE_START_MILE}–{TOTAL_MILES}) ──")
+
+    if upper_chain:
+        tail = upper_chain[-1]
+        # Lower POIs west of the current upper chain tail
+        rem_pois = [p for p in lower_pois
+                    if p['geometry']['coordinates'][0] < tail[0] - 0.005]
+        spline_pts = [tail] + [tuple(p['geometry']['coordinates']) for p in rem_pois]
+        lower_spline = catmull_rom_spline(spline_pts, n_per_seg=40)
+        print(f"  Spline: {len(lower_spline)} nodes through {len(spline_pts)-1} anchors")
+        full_chain = upper_chain + list(lower_spline[1:])
+        source = f"{source_upper} + Catmull-Rom lower canyon"
     else:
-        print("\nOSM chain too short — falling back to linear interpolation")
-        coords, miles = build_poi_centerline(pois_path, nodes_per_mile=20)
+        # Complete fallback: spline through all POIs
+        all_pts   = [tuple(p['geometry']['coordinates']) for p in pois]
+        full_chain = catmull_rom_spline(all_pts, n_per_seg=40)
+        source    = "Catmull-Rom spline (all POIs)"
+        print(f"  Full POI spline: {len(full_chain)} nodes")
 
-    # ── POI alignment check ───────────────────────────────────────────────────
-    print("\nPOI alignment:")
-    for feat in pois:
-        name = feat['properties']['name']
-        poi_mile = feat['properties']['mile']
-        poi_coord = feat['geometry']['coordinates']
-        dists = [haversine_m(poi_coord, c) for c in coords]
-        snap_i = min(range(len(dists)), key=lambda i: dists[i])
-        print(f"  {name:<32} poi={poi_mile:5.1f}  snap={miles[snap_i]:5.1f}  dist={dists[snap_i]:.0f}m")
+    # ── Step 4: Trim ─────────────────────────────────────────────────────────
+    print("\n── Step 4: Trim to put-in / take-out ──")
+    full_chain = trim_to_run(list(full_chain))
+    print(f"  {len(full_chain)} nodes after trim")
 
-    save_geojson(coords, miles, source=source)
+    # ── Step 5: Calibrated mileage ────────────────────────────────────────────
+    print("\n── Step 5: Calibrated mileage ──")
+    miles = calibrated_arc_miles(full_chain, pois)
+
+    report_poi_snaps(full_chain, miles, pois)
+    save_geojson(full_chain, miles, source)
 
 
 if __name__ == "__main__":
