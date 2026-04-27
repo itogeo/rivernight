@@ -49,8 +49,9 @@ NHD_URL = (
     "/NHDPlus_HR/MapServer/3/query"
 )
 OVERPASS_URLS = [
-    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.osm.ch/api/interpreter",
     "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
 ]
 
 # Ham Rapid — OSM coverage sometimes sparse west of here; spline fills gaps
@@ -69,45 +70,53 @@ def haversine_m(c1, c2):
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
-# ── OSM relation fetch ────────────────────────────────────────────────────────
+# ── OSM fetch ────────────────────────────────────────────────────────────────
 
-def fetch_osm_relation(relation_id):
-    """Fetch all ways in OSM relation 17877072, filtering to the paddled section."""
-    query = f"""
-[out:json][timeout:120];
-relation({relation_id});
-way(r);
-out body geom;
-"""
-    last_err = None
-    for url in OVERPASS_URLS:
-        try:
-            r = requests.get(url, params={"data": query}, timeout=150)
-            r.raise_for_status()
-            print(f"  Using {url}")
-            break
-        except Exception as e:
-            print(f"  {url} failed: {e}")
-            last_err = e
-    else:
-        print(f"  All Overpass endpoints failed: {last_err}")
-        return []
+def fetch_osm_ways():
+    """Fetch Selway River ways within the paddled section bounding box.
 
-    elements = [e for e in r.json().get("elements", []) if e["type"] == "way"]
-    segs = []
-    for e in elements:
-        coords = [
-            (g["lon"], g["lat"])
-            for g in e.get("geometry", [])
-            if "lon" in g and "lat" in g
-            and SECTION_LAT_MIN < g["lat"] < SECTION_LAT_MAX
-            and SECTION_LON_MIN < g["lon"] < SECTION_LON_MAX
-        ]
-        if len(coords) >= 2:
-            segs.append(coords)
-    print(f"  Relation {relation_id}: {len(elements)} ways → "
-          f"{len(segs)} usable canyon segments")
-    return segs
+    Tries two queries in order:
+      1. Relation-scoped: ways in relation 17877072 that intersect the bbox
+      2. Direct waterway name search within the bbox (catches any uncovered ways)
+    """
+    # Overpass bbox format: lat_min,lon_min,lat_max,lon_max
+    bbox = f"{SECTION_LAT_MIN},{SECTION_LON_MIN},{SECTION_LAT_MAX},{SECTION_LON_MAX}"
+
+    queries = [
+        # bbox inside way(r)(...) restricts to ways intersecting the section
+        f"""[out:json][timeout:120];
+relation({OSM_RELATION_ID});
+way(r)({bbox});
+out body geom;""",
+        # Direct fallback: any river way named Selway River in the bbox
+        f"""[out:json][timeout:120];
+way["waterway"="river"]["name"="Selway River"]({bbox});
+out body geom;""",
+    ]
+
+    for qi, query in enumerate(queries):
+        label = "relation-scoped" if qi == 0 else "direct waterway search"
+        for url in OVERPASS_URLS:
+            try:
+                r = requests.post(url, data={"data": query}, timeout=150)
+                r.raise_for_status()
+                elements = [e for e in r.json().get("elements", []) if e["type"] == "way"]
+                if not elements:
+                    print(f"  {url} ({label}): 0 ways — trying next query")
+                    break
+                segs = []
+                for e in elements:
+                    coords = [(g["lon"], g["lat"]) for g in e.get("geometry", [])
+                              if "lon" in g and "lat" in g]
+                    if len(coords) >= 2:
+                        segs.append(coords)
+                print(f"  {url} ({label}): {len(elements)} ways → {len(segs)} segments")
+                return segs
+            except Exception as e:
+                print(f"  {url} failed: {e}")
+
+    print("  All Overpass queries failed")
+    return []
 
 
 # ── NHD fallback ──────────────────────────────────────────────────────────────
@@ -336,11 +345,11 @@ def main():
     upper_chain = []
     source_upper = ""
 
-    # ── Step 1: OSM relation for upper canyon ─────────────────────────────────
-    print(f"\n── Step 1: OSM relation {OSM_RELATION_ID} (Wild and Scenic section) ──")
+    # ── Step 1: OSM ways for the Wild and Scenic section ────────────────────
+    print(f"\n── Step 1: OSM Selway River ways (Wild and Scenic section) ──")
     print(f"  Bounding box: lon {SECTION_LON_MIN}→{SECTION_LON_MAX}, lat {SECTION_LAT_MIN}→{SECTION_LAT_MAX}")
     try:
-        osm_segs = fetch_osm_relation(OSM_RELATION_ID)
+        osm_segs = fetch_osm_ways()
         if osm_segs:
             upper_chain = chain_westward(osm_segs, PUT_IN, gap_m=3000, label="OSM ")
             source_upper = "OSM relation 17877072"
