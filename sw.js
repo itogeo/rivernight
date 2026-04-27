@@ -7,7 +7,7 @@
  *  - USGS gauge: Network-first with stale fallback (ok to fail offline)
  */
 
-const APP_VERSION = 'v1.6.0';
+const APP_VERSION = 'v1.7.0';
 const SHELL_CACHE = `selway-shell-${APP_VERSION}`;
 const TILE_CACHE  = `selway-tiles-${APP_VERSION}`;
 const DATA_CACHE  = `selway-data-${APP_VERSION}`;
@@ -20,6 +20,10 @@ const SHELL_ASSETS = [
   '/manifest.json',
   '/data/river_centerline.geojson',
   '/data/pois.geojson',
+  '/data/mfsalmon/river_centerline.geojson',
+  '/data/mfsalmon/pois.geojson',
+  '/data/mainsalmon/river_centerline.geojson',
+  '/data/mainsalmon/pois.geojson',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
 ];

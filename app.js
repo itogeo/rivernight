@@ -11,6 +11,7 @@ const RIVERS = {
     id: 'selway',
     name: 'Selway River',
     sub: 'Paradise → Race Creek · 47.9 mi',
+    panelSub: 'Paradise → Race Creek · 47.9 mi · Class IV+',
     center: [46.08, -115.50],
     zoom: 11,
     totalMiles: 47.9,
@@ -24,6 +25,70 @@ const RIVERS = {
       river: 'data/river_centerline.geojson',
       pois:  'data/pois.geojson',
     },
+    tripInfo: {
+      putin: 'Paradise (Mi 0)', takeout: 'Race Creek (Mi 47.9)',
+      duration: '5–6 days', gradient: '~28 ft/mi avg',
+      maxClass: 'IV+ (Moose Juice)', gaugeId: '#13336500',
+      coverage: 'Full 47.9 mi · z11–z14',
+    },
+    permit: '⚠️ <strong>Permit required.</strong> Single launch per day via the 4 Rivers Lottery on Recreation.gov. Season late May–early August.',
+    attribution: '© Rivermaps LLC · Selway 2nd Ed.',
+  },
+
+  mfsalmon: {
+    id: 'mfsalmon',
+    name: 'Middle Fork Salmon',
+    sub: 'Boundary Creek → Cache Bar · 103 mi',
+    panelSub: 'Boundary Creek → Cache Bar · 103 mi · Class V',
+    center: [44.95, -114.99],
+    zoom: 10,
+    totalMiles: 103.0,
+    putIn:   { lat: 44.532, lon: -115.294, name: 'Boundary Creek Launch' },
+    takeOut: { lat: 45.365, lon: -114.685, name: 'Cache Bar' },
+    tileBbox:  { w: -115.45, s: 44.40, e: -114.60, n: 45.45 },
+    tileZooms: [10, 11, 12, 13],
+    gaugeUrl: 'https://waterservices.usgs.gov/nwis/iv/?format=json&sites=13309000&parameterCd=00060&siteStatus=all',
+    noaaUrl:  'https://api.water.noaa.gov/nwps/v1/gauges/bcki1/stageflow',
+    dataFiles: {
+      river: 'data/mfsalmon/river_centerline.geojson',
+      pois:  'data/mfsalmon/pois.geojson',
+    },
+    tripInfo: {
+      putin: 'Boundary Creek (Mi 0)', takeout: 'Cache Bar (Mi 103)',
+      duration: '6–8 days', gradient: '~27 ft/mi avg',
+      maxClass: 'V (Dagger Falls bypass)',  gaugeId: '#13309000',
+      coverage: 'Full 103 mi · z10–z13',
+    },
+    permit: '⚠️ <strong>Permit required.</strong> Boundary Creek launch via 4 Rivers Lottery on Recreation.gov. Season June–August.',
+    attribution: '© Rivermaps LLC · MF & Main Salmon 5th Ed.',
+  },
+
+  mainsalmon: {
+    id: 'mainsalmon',
+    name: 'Main Salmon River',
+    sub: 'Corn Creek → Vinegar Creek · 80 mi',
+    panelSub: 'Corn Creek → Vinegar Creek · 80 mi · Class IV',
+    center: [45.42, -115.31],
+    zoom: 10,
+    totalMiles: 80.0,
+    putIn:   { lat: 45.370, lon: -114.688, name: 'Corn Creek / Cache Bar' },
+    takeOut: { lat: 45.458, lon: -115.934, name: 'Vinegar Creek' },
+    tileBbox:  { w: -116.05, s: 45.28, e: -114.60, n: 45.65 },
+    tileZooms: [10, 11, 12, 13],
+    gaugeUrl: 'https://waterservices.usgs.gov/nwis/iv/?format=json&sites=13317000&parameterCd=00060&siteStatus=all',
+    noaaUrl:  'https://api.water.noaa.gov/nwps/v1/gauges/wbwi1/stageflow',
+    dataFiles: {
+      river: 'data/mainsalmon/river_centerline.geojson',
+      pois:  'data/mainsalmon/pois.geojson',
+    },
+    tripInfo: {
+      putin: 'Corn Creek (Mi 0)', takeout: 'Vinegar Creek (Mi 80)',
+      duration: '5–7 days', gradient: '~13 ft/mi avg',
+      maxClass: 'IV (Big Mallard)', gaugeId: '#13317000',
+      coverage: 'Full 80 mi · z10–z13',
+    },
+    permit: '⚠️ <strong>Permit required.</strong> Corn Creek launch via 4 Rivers Lottery on Recreation.gov. Season June–September.',
+    attribution: '© Rivermaps LLC · MF & Main Salmon 5th Ed.',
   },
 };
 
@@ -94,6 +159,10 @@ function bootSelectScreen() {
 async function selectRiver(riverId) {
   S.river = RIVERS[riverId];
   if (!S.river) return;
+
+  const rv = S.river;
+  document.getElementById('load-title-name')?.textContent = rv.name;
+  document.getElementById('load-title-sub')?.textContent  = rv.sub;
 
   const cached = localStorage.getItem('rg_cached_river') === riverId;
 
@@ -535,14 +604,57 @@ function launchMap() {
 
   if (!S.map) {
     initMap();
+  } else {
+    S.map.setView(S.river.center, S.river.zoom);
   }
 
+  updateRiverUI();
   drawRiverLine();
   drawPOIs();
   buildPOILists();
   updateGaugeUI();
   updateOfflineUI();
   Promise.all([fetchGaugeData(), fetchNOAAForecast()]).then(updateGaugeUI);
+}
+
+function updateRiverUI() {
+  const rv = S.river;
+  const ti = rv.tripInfo || {};
+
+  // Top bar
+  const rnEl = document.getElementById('top-rname');
+  if (rnEl) rnEl.textContent = rv.name;
+
+  // Panel header
+  const phH2 = document.querySelector('#ph h2');
+  const phP  = document.querySelector('#ph p');
+  if (phH2) phH2.textContent = rv.name;
+  if (phP)  phP.textContent  = rv.panelSub || rv.sub;
+
+  // Trip overview rows
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('trip-putin',    ti.putin    || '—');
+  set('trip-takeout',  ti.takeout  || '—');
+  set('trip-duration', ti.duration || '—');
+  set('trip-gradient', ti.gradient || '—');
+  set('trip-class',    ti.maxClass || '—');
+  set('trip-gauge-id', ti.gaugeId  || '—');
+
+  // Permit banner
+  const pb = document.getElementById('permit-banner');
+  if (pb) pb.innerHTML = rv.permit || '';
+
+  // Offline coverage
+  const ocEl = document.getElementById('offline-coverage');
+  if (ocEl) ocEl.textContent = ti.coverage || '—';
+
+  // About — attribution
+  const atEl = document.getElementById('attr-poi');
+  if (atEl) atEl.textContent = rv.attribution || '';
+
+  // River log header
+  const rlogSub = document.getElementById('rlog-hsub');
+  if (rlogSub) rlogSub.textContent = `${rv.name} · ${rv.sub}`;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -831,6 +943,85 @@ function drawFlowGraph() {
   `;
 }
 
+function openGraphFullscreen() {
+  const overlay = document.getElementById('graph-overlay');
+  const wrap    = document.getElementById('graph-fs-wrap');
+  if (!overlay || !wrap) return;
+
+  const obs = S.gaugeData?.history || [];
+  const fc  = S.noaaForecast?.forecastRaw || [];
+  if (!obs.length && !fc.length) return;
+
+  const allPts = [...obs, ...fc];
+  const allCfs = allPts.map(d => d.cfs);
+  const rawMin = Math.min(...allCfs);
+  const rawMax = Math.max(...allCfs);
+  const pad    = (rawMax - rawMin) * 0.08 || 200;
+  const minV   = Math.max(0, rawMin - pad);
+  const maxV   = rawMax + pad;
+  const tMin   = allPts[0].t;
+  const tMax   = allPts[allPts.length - 1].t;
+  const now    = Date.now();
+
+  const W = 360, H = 220;
+  const PL = 46, PR = 10, PT = 24, PB = 32;
+  const cW = W - PL - PR, cH = H - PT - PB;
+
+  const tx = t => PL + (t - tMin) / (tMax - tMin) * cW;
+  const ty = v => PT + (1 - (v - minV) / (maxV - minV)) * cH;
+  const toPath = pts => pts.map((d, i) => `${i ? 'L' : 'M'}${tx(d.t).toFixed(1)},${ty(d.cfs).toFixed(1)}`).join('');
+
+  const obsPath = toPath(obs);
+  const fcPath  = fc.length
+    ? (obs.length ? `M${tx(obs[obs.length-1].t).toFixed(1)},${ty(obs[obs.length-1].cfs).toFixed(1)}` : '') + toPath(fc)
+    : '';
+
+  const nowX = tx(now).toFixed(1);
+  const todayLine = now > tMin && now < tMax
+    ? `<line x1="${nowX}" y1="${PT}" x2="${nowX}" y2="${PT+cH}" stroke="rgba(255,255,255,.2)" stroke-width="1" stroke-dasharray="4 3"/>`
+    : '';
+
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map(f => {
+    const v = minV + (maxV - minV) * f;
+    const y = ty(v).toFixed(1);
+    const lbl = v >= 1000 ? `${(v/1000).toFixed(1)}k` : Math.round(v).toString();
+    return `<text x="${PL-6}" y="${+y+3}" text-anchor="end" fill="var(--sage)" font-size="10" font-family="var(--fm)">${lbl}</text>
+            <line x1="${PL}" y1="${y}" x2="${PL+cW}" y2="${y}" stroke="rgba(61,92,67,.25)" stroke-width="1"/>`;
+  }).join('');
+
+  const xLabels = `
+    <text x="${PL}" y="${H-10}" fill="var(--sage)" font-size="10" font-family="var(--fm)">30 days ago</text>
+    ${now > tMin && now < tMax ? `<text x="${nowX}" y="${H-10}" fill="rgba(255,255,255,.5)" font-size="10" font-family="var(--fm)" text-anchor="middle">now</text>` : ''}
+    <text x="${PL+cW}" y="${H-10}" fill="var(--sage)" font-size="10" font-family="var(--fm)" text-anchor="end">${fc.length ? '+7 days' : 'now'}</text>
+  `;
+
+  const title = document.getElementById('graph-fs-title');
+  if (title) title.textContent = `${S.river.name} · Flow History & Forecast`;
+
+  wrap.innerHTML = `
+    <svg width="100%" viewBox="0 0 ${W} ${H}" style="display:block;overflow:visible">
+      <line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+cH}" stroke="var(--lichen)" stroke-width="1"/>
+      <line x1="${PL}" y1="${PT+cH}" x2="${PL+cW}" y2="${PT+cH}" stroke="var(--lichen)" stroke-width="1"/>
+      ${yTicks}
+      ${xLabels}
+      ${todayLine}
+      ${obsPath ? `<path d="${obsPath}" fill="none" stroke="var(--water)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
+      ${fcPath  ? `<path d="${fcPath}"  fill="none" stroke="var(--amber)" stroke-width="1.8" stroke-dasharray="6 4" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
+      <line x1="${PL+4}"   y1="12" x2="${PL+20}"  y2="12" stroke="var(--water)" stroke-width="2.2"/>
+      <text x="${PL+24}"  y="15"  fill="var(--sage)" font-size="10" font-family="var(--fm)">USGS observed</text>
+      ${fc.length ? `<line x1="${PL+130}" y1="12" x2="${PL+146}" y2="12" stroke="var(--amber)" stroke-width="1.8" stroke-dasharray="5 3"/>
+      <text x="${PL+150}" y="15" fill="var(--sage)" font-size="10" font-family="var(--fm)">NOAA forecast</text>` : ''}
+    </svg>
+  `;
+
+  overlay.classList.remove('hidden');
+}
+
+function closeGraphFullscreen() {
+  const overlay = document.getElementById('graph-overlay');
+  if (overlay) overlay.classList.add('hidden');
+}
+
 function wxIcon(short) {
   const s = (short || '').toLowerCase();
   if (s.includes('thunder'))                             return '⛈';
@@ -1051,6 +1242,8 @@ function computeDistance() {
 function openRiverLog() {
   buildRiverLog();
   showScreen('screen-river');
+  // buildRiverProfile needs layout height — defer one frame
+  requestAnimationFrame(buildRiverProfile);
 }
 
 function closeRiverLog() {
@@ -1110,6 +1303,54 @@ function buildRiverLog() {
   });
 
   container.innerHTML = html;
+  buildRiverProfile();
+}
+
+function buildRiverProfile() {
+  const panel = document.getElementById('rlog-profile-panel');
+  if (!panel) return;
+
+  const totalMiles = S.river?.totalMiles || 100;
+  const W = 44, PAD = 16;
+  const H = panel.clientHeight || window.innerHeight - 120;
+  const lineH = H - PAD * 2;
+  const cx = W / 2;
+
+  const typeColor = {
+    rapid:  'var(--rapid-c)',
+    camp:   'var(--water)',
+    access: 'var(--amber)',
+    poi:    'var(--sage)',
+  };
+
+  // Wavy vertical river line
+  const seg = 28;
+  const steps = Math.ceil(lineH / seg);
+  let riverPath = `M ${cx} ${PAD}`;
+  for (let i = 1; i <= steps; i++) {
+    const y = PAD + i * seg;
+    const xOff = (i % 2 === 0) ? 6 : -6;
+    const ctrlY = PAD + (i - 0.5) * seg;
+    riverPath += ` Q ${cx + xOff} ${ctrlY} ${cx} ${y}`;
+  }
+
+  // POI dots
+  const sorted = [...S.pois].sort((a, b) => a.properties.mile - b.properties.mile);
+  const dots = sorted.map(feat => {
+    const p = feat.properties;
+    const t = p.mile / totalMiles;
+    const y = PAD + t * lineH;
+    const color = typeColor[p.type] || typeColor.poi;
+    return `<circle cx="${cx}" cy="${y.toFixed(1)}" r="3.5" fill="${color}" opacity="0.85"/>`;
+  }).join('');
+
+  panel.innerHTML = `
+    <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" fill="none" style="display:block">
+      <path d="${riverPath}" stroke="var(--water)" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+      ${dots}
+      <text x="${cx}" y="${PAD - 4}" text-anchor="middle" font-family="var(--fm)" font-size="7" fill="var(--sage)" letter-spacing="0.08em">MI 0</text>
+      <text x="${cx}" y="${H - 3}" text-anchor="middle" font-family="var(--fm)" font-size="7" fill="var(--sage)" letter-spacing="0.08em">${totalMiles}</text>
+    </svg>`;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -1190,6 +1431,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('offline-btn')
     ?.addEventListener('click', downloadForOffline);
+
+  // Graph fullscreen tap
+  document.getElementById('flow-graph-wrap')
+    ?.addEventListener('click', openGraphFullscreen);
 
   // Warn before leaving if GPS is on
   window.addEventListener('beforeunload', e => {

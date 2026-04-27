@@ -1,0 +1,3108 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Airplane",
+        "description": "",
+        "mile": 25
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.120461,
+          44.7529955
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Bernard",
+        "description": "",
+        "mile": 68
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7343673,
+          44.9827355
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Big Bend",
+        "description": "",
+        "mile": 7
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2792002,
+          44.6117891
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Big Creek",
+        "description": "",
+        "mile": 77
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7335782,
+          45.0945104
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Big Loon (HS)",
+        "description": "",
+        "mile": 50
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8119085,
+          44.8081967
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Big Pine",
+        "description": "",
+        "mile": 79
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7261932,
+          45.109309
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Dolly Lake",
+        "description": "",
+        "mile": 19
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.147107,
+          44.6944621
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Boot",
+        "description": "",
+        "mile": 10
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2339451,
+          44.6209817
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Boy Scout",
+        "description": "",
+        "mile": 6
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2891281,
+          44.5990927
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Broken Oar",
+        "description": "",
+        "mile": 62
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7321129,
+          44.9112255
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Cable Hole",
+        "description": "",
+        "mile": 2
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.298046,
+          44.5509291
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Camas Creek",
+        "description": "",
+        "mile": 60
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7225433,
+          44.8915767
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Cave",
+        "description": "",
+        "mile": 52
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7922646,
+          44.8357845
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Cliffside",
+        "description": "",
+        "mile": 89
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6724613,
+          45.2343705
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Cold Spring",
+        "description": "",
+        "mile": 69
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7289358,
+          44.9999769
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Cow Creek",
+        "description": "",
+        "mile": 50
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8076884,
+          44.8147469
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Cradle Creek",
+        "description": "",
+        "mile": 88
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6832403,
+          45.2199358
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Cub Creek",
+        "description": "",
+        "mile": 53
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7801268,
+          44.8409412
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Culver Creek",
+        "description": "",
+        "mile": 46
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8681602,
+          44.7792214
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Cutthroat Cove",
+        "description": "",
+        "mile": 78
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7313852,
+          45.1061371
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Big Snag",
+        "description": "",
+        "mile": 20
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1494449,
+          44.6959225
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Dome Hole",
+        "description": "",
+        "mile": 16
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.16557,
+          44.6508035
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Driftwood Flat",
+        "description": "",
+        "mile": 71
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7258767,
+          45.0210272
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Elk Bar",
+        "description": "",
+        "mile": 79
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7259522,
+          45.1141838
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Elkhorn Bar",
+        "description": "",
+        "mile": 9
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2505007,
+          44.6167537
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Fire Island",
+        "description": "",
+        "mile": 14
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1901141,
+          44.6363371
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Fish",
+        "description": "",
+        "mile": 77
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7230893,
+          45.0891711
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Fly",
+        "description": "",
+        "mile": 75
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7258849,
+          45.0676279
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Flying B Ranch",
+        "description": "",
+        "mile": 66
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7335163,
+          44.9558573
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Funston",
+        "description": "",
+        "mile": 62
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7327701,
+          44.9088279
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Gardells Hole",
+        "description": "",
+        "mile": 3
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.3008562,
+          44.5670218
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Goat Creek",
+        "description": "",
+        "mile": 94
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.606714,
+          45.2839832
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Grassy Flat I",
+        "description": "",
+        "mile": 72
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7265275,
+          45.0350693
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Grassy Flat II",
+        "description": "",
+        "mile": 73
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7257716,
+          45.0375655
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Greyhound",
+        "description": "",
+        "mile": 16
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1668158,
+          44.6501036
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Indian Creek Beach",
+        "description": "",
+        "mile": 25
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1135787,
+          44.7571967
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Hood Ranch",
+        "description": "",
+        "mile": 36
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.9942881,
+          44.7287008
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Horsetail",
+        "description": "",
+        "mile": 53
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7849749,
+          44.8384978
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Hospital Bar (HS)",
+        "description": "",
+        "mile": 52
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7895527,
+          44.8339426
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Indian Creek",
+        "description": "",
+        "mile": 27
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0909191,
+          44.7692254
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Joe Bump Cabin",
+        "description": "",
+        "mile": 12
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2132142,
+          44.6257721
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Johnny Walker",
+        "description": "",
+        "mile": 61
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7301611,
+          44.8988102
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Johns",
+        "description": "",
+        "mile": 15
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1774682,
+          44.645499
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Lake Creek",
+        "description": "",
+        "mile": 15
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1805616,
+          44.6429366
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Last Chance",
+        "description": "",
+        "mile": 78
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7313091,
+          45.0965388
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Lightning Strike",
+        "description": "",
+        "mile": 84
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7192814,
+          45.1834313
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Little Soldier",
+        "description": "",
+        "mile": 31
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0308804,
+          44.735747
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Little Creek",
+        "description": "",
+        "mile": 36
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0002334,
+          44.7271359
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Little Pine",
+        "description": "",
+        "mile": 71
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7282955,
+          45.0161958
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Lower Grouse",
+        "description": "",
+        "mile": 57
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7676859,
+          44.8723452
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Lower Jackass Flat",
+        "description": "",
+        "mile": 38
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.9604739,
+          44.7220188
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Lost Oak",
+        "description": "",
+        "mile": 33
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0179546,
+          44.730723
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Love Bar",
+        "description": "",
+        "mile": 79
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7260077,
+          45.115415
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Mahoney",
+        "description": "",
+        "mile": 42
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.9165322,
+          44.7509259
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Marble Creek Left",
+        "description": "",
+        "mile": 32
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0215429,
+          44.7438749
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Marble Creek Right",
+        "description": "",
+        "mile": 32
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.017308,
+          44.7429992
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Oakie Point",
+        "description": "",
+        "mile": 16
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1685297,
+          44.6475665
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Otter Bar",
+        "description": "",
+        "mile": 90
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6619654,
+          45.2390046
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Ouzel",
+        "description": "",
+        "mile": 89
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6755264,
+          45.2336742
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Papoose",
+        "description": "",
+        "mile": 84
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7209865,
+          45.1744881
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Parrot Cabin",
+        "description": "",
+        "mile": 87
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6844274,
+          45.2104552
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Parrot Placer",
+        "description": "",
+        "mile": 86
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6974797,
+          45.1907969
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Pine Bluff",
+        "description": "",
+        "mile": 78
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7307901,
+          45.1035768
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Pine Creek Flat",
+        "description": "",
+        "mile": 43
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8959233,
+          44.7598989
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Pistol Creek",
+        "description": "",
+        "mile": 22
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1497235,
+          44.7232123
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Pool",
+        "description": "",
+        "mile": 61
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.728106,
+          44.9043152
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Pungo Creek",
+        "description": "",
+        "mile": 28
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0732864,
+          44.7646878
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Quick Stop",
+        "description": "",
+        "mile": 22
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1410453,
+          44.7196255
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Rapid",
+        "description": "",
+        "mile": 9
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2476518,
+          44.6184301
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Rapid River",
+        "description": "",
+        "mile": 18
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1529068,
+          44.6803237
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Redside",
+        "description": "",
+        "mile": 82
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7315132,
+          45.149662
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Rock Island",
+        "description": "",
+        "mile": 47
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8533938,
+          44.7824084
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Saddle",
+        "description": "",
+        "mile": 10
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2354574,
+          44.6219429
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Scout (HS)",
+        "description": "",
+        "mile": 13
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1986753,
+          44.6245076
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Sheep Creek",
+        "description": "",
+        "mile": 65
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7279513,
+          44.9423353
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Sheepeater (HS)",
+        "description": "",
+        "mile": 13
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1968979,
+          44.6271882
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Shelf",
+        "description": "",
+        "mile": 49
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8337819,
+          44.8020591
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Ship Island",
+        "description": "",
+        "mile": 84
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7213686,
+          45.175846
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Short Creek",
+        "description": "",
+        "mile": 68
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7331508,
+          44.9834595
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Solitude",
+        "description": "",
+        "mile": 92
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6353672,
+          45.2657625
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Spring",
+        "description": "",
+        "mile": 3
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.3028406,
+          44.5725764
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "State Land Right",
+        "description": "",
+        "mile": 35
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0030582,
+          44.7205925
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Stoddard",
+        "description": "",
+        "mile": 89
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6661172,
+          45.2362188
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Sunflower Flat (HS)",
+        "description": "",
+        "mile": 33
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.018902,
+          44.7307199
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Survey Creek",
+        "description": "",
+        "mile": 74
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7234243,
+          45.0557649
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Tappan Island",
+        "description": "",
+        "mile": 57
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7605599,
+          44.8747902
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Teepee Hole",
+        "description": "",
+        "mile": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2939802,
+          44.5445945
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "State Land Left",
+        "description": "",
+        "mile": 35
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0049562,
+          44.7195161
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Trail",
+        "description": "",
+        "mile": 64
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7280081,
+          44.9290013
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Trail Flat (HS)",
+        "description": "",
+        "mile": 7
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2701107,
+          44.6091629
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Tumble Creek",
+        "description": "",
+        "mile": 88
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6809681,
+          45.2227833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Upper Jackass Flat",
+        "description": "",
+        "mile": 38
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.9702366,
+          44.7244291
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Upper Grouse",
+        "description": "",
+        "mile": 56
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7682395,
+          44.8702382
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "White Creek",
+        "description": "",
+        "mile": 48
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8413917,
+          44.7931331
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Whitie Cox",
+        "description": "",
+        "mile": 46
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8562206,
+          44.783582
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Wilson Creek",
+        "description": "",
+        "mile": 72
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7239585,
+          45.0321234
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Woolard Creek",
+        "description": "",
+        "mile": 74
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.723869,
+          45.0573924
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "access",
+        "name": "Boundary Creek Boat Launch & Ranger Station",
+        "description": "",
+        "mile": 0
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.293934,
+          44.5319107
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "access",
+        "name": "Cache Bar Boat Ramp",
+        "description": "",
+        "mile": 98
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6368266,
+          45.3186068
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Cameron Creek Pictographs",
+        "description": "",
+        "mile": 40
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.9412475,
+          44.7313543
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Loon Creek Hot Spring",
+        "description": "",
+        "mile": 50
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8056772,
+          44.7987596
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Mist Falls",
+        "description": "",
+        "mile": 82
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7234409,
+          45.1578249
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Paulsens Cabin",
+        "description": "",
+        "mile": 44
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8928919,
+          44.7633631
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Pebble Beach",
+        "description": "",
+        "mile": 47
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8513823,
+          44.7855232
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Rattlesnake Cave",
+        "description": "",
+        "mile": 74
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7233384,
+          45.051106
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "\"Shark Fin Rock\" Pictographs",
+        "description": "",
+        "mile": 62
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7322119,
+          44.9159175
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "(Tappan II Rapid)",
+        "description": "",
+        "mile": 59
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7407793,
+          44.8795894
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Tappan Ranch",
+        "description": "",
+        "mile": 57
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7666981,
+          44.8731833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "\"Tombstone\" Pictographs",
+        "description": "",
+        "mile": 83
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7232093,
+          45.1663375
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Veil Falls",
+        "description": "",
+        "mile": 80
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7243651,
+          45.1274993
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Aparejo Point Rapid",
+        "description": "Aparejo Point Rapid (II-III)",
+        "difficulty": "III",
+        "mile": 63
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7304633,
+          44.9206969
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Artillery Rapid",
+        "description": "Artillery Rapid (II-III)",
+        "difficulty": "III",
+        "mile": 18
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1574474,
+          44.6695255
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Big Creek Rapid",
+        "description": "Big Creek Rapid (II)",
+        "difficulty": "II",
+        "mile": 77
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7331972,
+          45.0948718
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Big Pine Rapid",
+        "description": "Big Pine Rapid (II)",
+        "difficulty": "II",
+        "mile": 79
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7259279,
+          45.1100429
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Boulder choke",
+        "description": "Boulder choke (II)",
+        "difficulty": "II",
+        "mile": 93
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6294368,
+          45.2696732
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Boulder choke",
+        "description": "Boulder choke (II)",
+        "difficulty": "II",
+        "mile": 93
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6202264,
+          45.2761823
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Boulder choke",
+        "description": "Boulder choke (II)",
+        "difficulty": "II",
+        "mile": 94
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6131726,
+          45.2795034
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Cannon Creek Rapid",
+        "description": "Cannon Creek Rapid (III)",
+        "difficulty": "III",
+        "mile": 20
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1493584,
+          44.6990879
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "The Chutes",
+        "description": "The Chutes (III)",
+        "difficulty": "III",
+        "mile": 8
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2600885,
+          44.6063307
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Cobble Bar",
+        "description": "Cobble Bar (II)",
+        "difficulty": "II",
+        "mile": 49
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8279703,
+          44.8020764
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Cove Creek Rapid",
+        "description": "Cove Creek Rapid (III-IV)",
+        "difficulty": "III+/IV",
+        "mile": 59
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7379487,
+          44.8789817
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Cramer Creek Rapid",
+        "description": "Cramer Creek Rapid (III-IV)",
+        "difficulty": "III+/IV",
+        "mile": 97
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6265313,
+          45.3097132
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Cutthroat Cove Rapid",
+        "description": "Cutthroat Cove Rapid (II-III)",
+        "difficulty": "III",
+        "mile": 78
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7306295,
+          45.104656
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Devils Tooth Rapid",
+        "description": "Devils Tooth Rapid (III)",
+        "difficulty": "III",
+        "mile": 93
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6258429,
+          45.2727947
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Elkhorn Rapid",
+        "description": "Elkhorn Rapid (II)",
+        "difficulty": "II",
+        "mile": 8
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2591538,
+          44.6117445
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "First Bend Rapid",
+        "description": "First Bend Rapid (II)",
+        "difficulty": "II",
+        "mile": 0
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2947726,
+          44.5325506
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Goat Creek Rapid",
+        "description": "Goat Creek Rapid (II)",
+        "difficulty": "II",
+        "mile": 94
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6068551,
+          45.2824942
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Greyhound Creek Rapid",
+        "description": "Greyhound Creek Rapid (II)",
+        "difficulty": "II",
+        "mile": 16
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1680034,
+          44.6482554
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Grouse Creek Rapid",
+        "description": "Grouse Creek Rapid (II)",
+        "difficulty": "II",
+        "mile": 57
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7687362,
+          44.8724455
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Hancock Rapid",
+        "description": "Hancock Rapid (III-IV)",
+        "difficulty": "III+/IV",
+        "mile": 91
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6479123,
+          45.2585278
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Haystack Rapid",
+        "description": "Haystack Rapid (III)",
+        "difficulty": "III",
+        "mile": 67
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7359956,
+          44.9737018
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Hells Half Mile Rapid",
+        "description": "Hells Half Mile Rapid (II-III)",
+        "difficulty": "III",
+        "mile": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2957386,
+          44.5869531
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "House Rock Rapid",
+        "description": "House Rock Rapid (III)",
+        "difficulty": "III",
+        "mile": 93
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6240178,
+          45.2746346
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Jackass Rapid",
+        "description": "Jackass Rapid (III)",
+        "difficulty": "III",
+        "mile": 38
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.9706958,
+          44.7259088
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Jack Creek Rapid",
+        "description": "Jack Creek Rapid (II)",
+        "difficulty": "II",
+        "mile": 49
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8212175,
+          44.8052196
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Jack Creek Rapid",
+        "description": "Jack Creek Rapid (II-III)",
+        "difficulty": "III",
+        "mile": 70
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7226287,
+          45.0058662
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Jump Off Rapid",
+        "description": "Jump Off Rapid (III)",
+        "difficulty": "III",
+        "mile": 93
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6177352,
+          45.2773042
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Kimmel Creek Rapid",
+        "description": "Kimmel Creek Rapid (II)",
+        "difficulty": "II",
+        "mile": 75
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7261268,
+          45.0671061
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Kitchen Creek Rapid",
+        "description": "Kitchen Creek Rapid (III)",
+        "difficulty": "III",
+        "mile": 99
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6463149,
+          45.3245128
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Lake Creek Rapid",
+        "description": "Lake Creek Rapid (III)",
+        "difficulty": "III",
+        "mile": 21
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1410996,
+          44.7192808
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Lower Cliffside Rapid",
+        "description": "Lower Cliffside Rapid (III)",
+        "difficulty": "III",
+        "mile": 88
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6809465,
+          45.221418
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Marble Creek Rapid",
+        "description": "Marble Creek Rapid (III)",
+        "difficulty": "III",
+        "mile": 32
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0200608,
+          44.7440429
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Mist Falls Rapid",
+        "description": "Mist Falls Rapid (II)",
+        "difficulty": "II",
+        "mile": 83
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7235006,
+          45.159801
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Murphs Hole",
+        "description": "Murphs Hole (III)",
+        "difficulty": "III",
+        "mile": 1
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.290323,
+          44.5430388
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Orelano Creek Rapid",
+        "description": "Orelano Creek Rapid (II)",
+        "difficulty": "II",
+        "mile": 29
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0605749,
+          44.7565339
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Ouzel Rapid",
+        "description": "Ouzel Rapid (II)",
+        "difficulty": "II",
+        "mile": 89
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6717221,
+          45.2347055
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Pistol Creek Rapid",
+        "description": "Pistol Creek Rapid (III-IV)",
+        "difficulty": "III+/IV",
+        "mile": 22
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1486139,
+          44.7219364
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Porcupine Rapid",
+        "description": "Porcupine Rapid (III)",
+        "difficulty": "III",
+        "mile": 80
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7267618,
+          45.129223
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Powerhouse Rapid",
+        "description": "Powerhouse Rapid (III-IV)",
+        "difficulty": "III+/IV",
+        "mile": 11
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2214727,
+          44.6306144
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Proctor Creek Rapid",
+        "description": "Proctor Creek Rapid (II)",
+        "difficulty": "II",
+        "mile": 100
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6635248,
+          45.3381368
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Ramshorn Rapid",
+        "description": "Ramshorn Rapid (II)",
+        "difficulty": "II",
+        "mile": 4
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.3046498,
+          44.5800841
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Redside Rapid",
+        "description": "Redside Rapid (III-IV)",
+        "difficulty": "III+/IV",
+        "mile": 82
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7318501,
+          45.1515093
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Mid-Channel Rock",
+        "description": "Mid-Channel Rock (II)",
+        "difficulty": "II",
+        "mile": 2
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2974417,
+          44.5533127
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Rubber Rapid",
+        "description": "Rubber Rapid (III-IV)",
+        "difficulty": "III+/IV",
+        "mile": 90
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6589056,
+          45.249178
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Shelf Rapid",
+        "description": "Shelf Rapid (II)",
+        "difficulty": "II",
+        "mile": 48
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.835094,
+          44.8007754
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Ski Jump Rapid",
+        "description": "Ski Jump Rapid (II-IV)",
+        "difficulty": "III+",
+        "mile": 33
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0146048,
+          44.738155
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Sulphur Slide Rapid",
+        "description": "Sulphur Slide Rapid (III)",
+        "difficulty": "III",
+        "mile": 3
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.3002766,
+          44.5681795
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Tappan I Rapid",
+        "description": "Tappan I Rapid (II-III)",
+        "difficulty": "III",
+        "mile": 58
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7544768,
+          44.8732997
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Tappan IV Rapid",
+        "description": "Tappan IV Rapid (II)",
+        "difficulty": "II",
+        "mile": 59
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7321927,
+          44.8804738
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Tappan Falls",
+        "description": "Tappan Falls (III-IV)",
+        "difficulty": "III+/IV",
+        "mile": 58
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7497503,
+          44.8790576
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Rapid",
+        "description": "Rapid (II)",
+        "difficulty": "II",
+        "mile": 75
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7281361,
+          45.0740386
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Rapid",
+        "description": "Rapid (II)",
+        "difficulty": "II",
+        "mile": 101
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.674973,
+          45.3495995
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Upper Cliffside Rapid",
+        "description": "Upper Cliffside Rapid (III)",
+        "difficulty": "III",
+        "mile": 88
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6836999,
+          45.2201628
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Veil Falls Rapid",
+        "description": "Veil Falls Rapid (II)",
+        "difficulty": "II",
+        "mile": 80
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7229105,
+          45.1244927
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Velvet Falls",
+        "description": "Velvet Falls (IV)",
+        "difficulty": "IV",
+        "mile": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2911621,
+          44.5951619
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Waterfall Creek Rapid",
+        "description": "Waterfall Creek Rapid (III)",
+        "difficulty": "III",
+        "mile": 77
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7270101,
+          45.0906743
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Weber Rapid",
+        "description": "Weber Rapid (III-IV)",
+        "difficulty": "III+/IV",
+        "mile": 82
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7276417,
+          45.1563051
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "White Creek Rapid",
+        "description": "White Creek Rapid (II)",
+        "difficulty": "II",
+        "mile": 48
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.8417791,
+          44.7903649
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Dagger Falls",
+        "description": "Dagger Falls (V)",
+        "difficulty": "V",
+        "mile": 0
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2849647,
+          44.529001
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Bernard Rapid",
+        "description": "Bernard Rapid (III)",
+        "difficulty": "III",
+        "mile": 68
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7358239,
+          44.9751135
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "access",
+        "name": "Confluence Boat Ramp",
+        "description": "",
+        "mile": 96
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.5957442,
+          45.2991421
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Thimbleberry",
+        "description": "",
+        "mile": 13
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2058016,
+          44.6276176
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Anderson",
+        "description": "",
+        "mile": 28
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0753859,
+          44.7663368
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Tiny Tappan",
+        "description": "",
+        "mile": 58
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7548954,
+          44.8728897
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Tappan Falls",
+        "description": "",
+        "mile": 58
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7506535,
+          44.8793502
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Salmon RiverLodge",
+        "description": "",
+        "mile": 103
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6854735,
+          45.3648232
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Blowout Rapid",
+        "description": "Blowout Rapid (II-III)",
+        "difficulty": "III",
+        "mile": 13
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1968016,
+          44.6294852
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Little Creek Bridge",
+        "description": "",
+        "mile": 36
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.9994174,
+          44.7238359
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Raft Hazard",
+        "description": "Raft Hazard (River Left)",
+        "difficulty": null,
+        "mile": 6
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2877813,
+          44.6003569
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Dagger Falls Campground",
+        "description": "",
+        "mile": 0
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2843467,
+          44.5276218
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "camp",
+        "name": "Boundary Creek Campground",
+        "description": "",
+        "mile": 0
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.2936014,
+          44.5295399
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Pistol Creek\nRanch (private)",
+        "description": "",
+        "mile": 23
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.1476569,
+          44.7326429
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Middle ForkLodge (private)",
+        "description": "",
+        "mile": 34
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.0156844,
+          44.7199808
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Cougar Creek\nRanch (private)",
+        "description": "",
+        "mile": 41
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.9204734,
+          44.73863
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Mahoney Ranch",
+        "description": "",
+        "mile": 42
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.9209163,
+          44.756533
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Mormon Ranch",
+        "description": "",
+        "mile": 65
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7299478,
+          44.94931
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Flying B Ranch",
+        "description": "",
+        "mile": 66
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.7357518,
+          44.9565498
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Waterfall Creek",
+        "description": "",
+        "mile": 77
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.729473,
+          45.0927223
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "poi",
+        "name": "Stoddard Pack Bridge",
+        "description": "",
+        "mile": 96
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -114.6043926,
+          45.2958761
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "rapid",
+        "name": "Spike Creek Rapid",
+        "description": "Spike Creek Rapid (III)",
+        "difficulty": "III",
+        "mile": 5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -115.293473,
+          44.593704
+        ]
+      }
+    }
+  ]
+}

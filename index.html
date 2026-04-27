@@ -348,6 +348,7 @@
       border-radius: 8px; color: var(--sage);
       font-family: var(--fh); font-size: 11px; font-weight: 700;
       cursor: pointer; text-align: center; transition: all .15s;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
     }
     .fchip[data-poi="rapid"].active { border-color: var(--rapid-c); color: #e07060; background: rgba(196,74,42,.12); }
     .fchip[data-poi="camp"].active  { border-color: var(--water); color: var(--water-lt); background: rgba(91,168,196,.12); }
@@ -449,7 +450,7 @@
     .mk-access { border-radius:8px; background:rgba(42,63,46,.95); border:2px solid var(--amber); width:32px; height:32px; }
 
     /* flow graph */
-    #flow-graph-wrap { margin: 10px 0 2px; }
+    #flow-graph-wrap { margin: 10px 0 2px; cursor: pointer; }
 
     /* weather grid */
     .wx-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-top:6px; }
@@ -494,12 +495,44 @@
     .layer-chips-row .lchip { flex: 1; }
 
     /* ══════════════════════════════════════════════
+       GRAPH FULLSCREEN OVERLAY
+    ══════════════════════════════════════════════ */
+    #graph-overlay {
+      position: fixed; inset: 0; z-index: 2000;
+      background: rgba(14,26,19,.97); backdrop-filter: blur(4px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: calc(var(--safe-top) + 60px) 16px calc(var(--safe-bot) + 24px);
+    }
+    #graph-overlay.hidden { display: none; }
+    #graph-fs-close {
+      position: absolute; top: calc(var(--safe-top) + 14px); right: 16px;
+      background: rgba(28,43,31,.9); border: 1px solid var(--moss);
+      border-radius: 8px; color: var(--sage);
+      font-size: 20px; cursor: pointer; padding: 6px 12px; line-height: 1;
+    }
+    #graph-fs-title {
+      font-family: var(--fm); font-size: 10px; color: var(--sage);
+      letter-spacing: .12em; text-transform: uppercase; margin-bottom: 14px;
+      text-align: center;
+    }
+    #graph-fs-wrap { width: 100%; max-width: 440px; }
+
+    /* ══════════════════════════════════════════════
        SCREEN 4 — RIVER LOG
     ══════════════════════════════════════════════ */
     #screen-river {
       background: var(--ink);
       display: flex; flex-direction: column;
       z-index: 15;
+    }
+    #rlog-content-row {
+      flex: 1; display: flex; overflow: hidden;
+    }
+    #rlog-profile-panel {
+      width: 44px; flex-shrink: 0;
+      background: var(--bark); border-left: 1px solid var(--moss);
+      overflow: hidden; position: relative;
     }
     #rlog-head {
       padding: calc(var(--safe-top) + 10px) 16px 12px;
@@ -512,7 +545,7 @@
     #rlog-htitle { font-size: 18px; font-weight: 900; color: var(--paper); }
     #rlog-hsub { font-family: var(--fm); font-size: 10px; color: var(--sage); margin-top: 2px; letter-spacing: .05em; }
     #rlog-scroll {
-      flex: 1; overflow-y: auto;
+      flex: 1; overflow-y: auto; min-width: 0;
       -webkit-overflow-scrolling: touch;
       padding: 20px 14px calc(var(--safe-bot) + 28px);
     }
@@ -605,12 +638,12 @@
     <h1 class="wordmark-h1">Choose your <em>river</em></h1>
   </div>
 
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-    <div id="returning-msg" class="returning-msg">
-      <strong id="ret-name">Selway River</strong> is cached and ready —<br>
-      tap the card to go straight to the map.
-    </div>
+  <div id="returning-msg" class="returning-msg">
+    <strong id="ret-name">Selway River</strong> is cached and ready —<br>
+    tap the card to go straight to the map.
+  </div>
 
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">
     <div class="river-card" id="card-selway" onclick="selectRiver('selway')">
       <div class="card-hero">
         <span class="card-state-badge">IDAHO</span>
@@ -639,9 +672,67 @@
         <div class="card-arrow">→</div>
       </div>
     </div>
+
+    <div class="river-card" id="card-mfsalmon" onclick="selectRiver('mfsalmon')">
+      <div class="card-hero">
+        <span class="card-state-badge">IDAHO</span>
+        <div class="card-name">Middle Fork Salmon</div>
+        <div class="card-region">FRANK CHURCH — RIVER OF NO RETURN WILDERNESS</div>
+      </div>
+      <div class="card-stats">
+        <div class="stat">
+          <span class="stat-lbl">Distance</span>
+          <span class="stat-val">103</span>
+          <span class="stat-unit">river miles</span>
+        </div>
+        <div class="stat">
+          <span class="stat-lbl">Max class</span>
+          <span class="stat-val">V</span>
+          <span class="stat-unit">Dagger Falls</span>
+        </div>
+        <div class="stat">
+          <span class="stat-lbl">Season</span>
+          <span class="stat-val">10 wk</span>
+          <span class="stat-unit">Jun – Aug</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <span class="card-cta">Prepare &amp; launch</span>
+        <div class="card-arrow">→</div>
+      </div>
+    </div>
+
+    <div class="river-card" id="card-mainsalmon" onclick="selectRiver('mainsalmon')">
+      <div class="card-hero">
+        <span class="card-state-badge">IDAHO</span>
+        <div class="card-name">Main Salmon River</div>
+        <div class="card-region">FRANK CHURCH — RIVER OF NO RETURN WILDERNESS</div>
+      </div>
+      <div class="card-stats">
+        <div class="stat">
+          <span class="stat-lbl">Distance</span>
+          <span class="stat-val">80</span>
+          <span class="stat-unit">river miles</span>
+        </div>
+        <div class="stat">
+          <span class="stat-lbl">Max class</span>
+          <span class="stat-val">IV</span>
+          <span class="stat-unit">Big Mallard</span>
+        </div>
+        <div class="stat">
+          <span class="stat-lbl">Season</span>
+          <span class="stat-val">16 wk</span>
+          <span class="stat-unit">Jun – Sep</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <span class="card-cta">Prepare &amp; launch</span>
+        <div class="card-arrow">→</div>
+      </div>
+    </div>
   </div>
 
-  <div class="footer-note">MORE RIVERS COMING SOON · OPEN SOURCE ON GITHUB</div>
+  <div class="footer-note">3 WILDERNESS RIVERS · OPEN SOURCE ON GITHUB</div>
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -660,8 +751,8 @@
     </svg>
 
     <div class="load-title">
-      <h2>Selway River</h2>
-      <p>Paradise → Race Creek &middot; 47.9 mi</p>
+      <h2 id="load-title-name">Selway River</h2>
+      <p id="load-title-sub">Paradise → Race Creek &middot; 47.9 mi</p>
     </div>
 
     <div class="stages" id="stages">
@@ -740,9 +831,28 @@
     </div>
 
     <div id="filter-row">
-      <button class="fchip active" data-poi="rapid">🌊 Rapids</button>
-      <button class="fchip active" data-poi="camp">⛺ Camps</button>
-      <button class="fchip active" data-poi="access">🚣 Access</button>
+      <button class="fchip active" data-poi="rapid">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+          <path d="M1 9C2.8 6.2 4.8 6.2 6.6 9C8.4 11.8 10.4 11.8 12.2 9C14 6.2 16 6.2 17.8 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M1 4C2.8 1.2 4.8 1.2 6.6 4C8.4 6.8 10.4 6.8 12.2 4C14 1.2 16 1.2 17.8 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        Rapids
+      </button>
+      <button class="fchip active" data-poi="camp">
+        <svg width="16" height="14" viewBox="0 0 18 16" fill="none">
+          <path d="M9 1.5L1 14.5H17L9 1.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M9 1.5V14.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M6.5 14.5C6.5 13.1 7.6 12 9 12C10.4 12 11.5 13.1 11.5 14.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        Camps
+      </button>
+      <button class="fchip active" data-poi="access">
+        <svg width="12" height="16" viewBox="0 0 14 18" fill="none">
+          <path d="M7 1C3.7 1 1 3.7 1 7C1 11.4 7 17 7 17C7 17 13 11.4 13 7C13 3.7 10.3 1 7 1Z" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="7" cy="7" r="2.2" fill="currentColor"/>
+        </svg>
+        Access
+      </button>
     </div>
 
     <div id="action-row">
@@ -784,19 +894,19 @@
             <button class="lchip" data-layer="osm">🗺 Street</button>
           </div>
         </div>
-        <div class="permit-banner">⚠️ <strong>Permit required.</strong> Single launch per day via the 4 Rivers Lottery on Recreation.gov. Season late May–early August.</div>
+        <div class="permit-banner" id="permit-banner">⚠️ <strong>Permit required.</strong> Single launch per day via the 4 Rivers Lottery on Recreation.gov. Season late May–early August.</div>
         <div class="icard">
           <div class="icard-ttl">Trip Overview</div>
-          <div class="irow"><span class="ilbl">Put-in</span><span class="ival">Paradise (Mi 0)</span></div>
-          <div class="irow"><span class="ilbl">Take-out</span><span class="ival">Race Creek (Mi 47.9)</span></div>
-          <div class="irow"><span class="ilbl">Duration</span><span class="ival">5–6 days</span></div>
-          <div class="irow"><span class="ilbl">Gradient</span><span class="ival">~28 ft/mi avg</span></div>
-          <div class="irow"><span class="ilbl">Max class</span><span class="ival">IV+ (Moose Juice)</span></div>
+          <div class="irow"><span class="ilbl">Put-in</span><span class="ival" id="trip-putin">Paradise (Mi 0)</span></div>
+          <div class="irow"><span class="ilbl">Take-out</span><span class="ival" id="trip-takeout">Race Creek (Mi 47.9)</span></div>
+          <div class="irow"><span class="ilbl">Duration</span><span class="ival" id="trip-duration">5–6 days</span></div>
+          <div class="irow"><span class="ilbl">Gradient</span><span class="ival" id="trip-gradient">~28 ft/mi avg</span></div>
+          <div class="irow"><span class="ilbl">Max class</span><span class="ival" id="trip-class">IV+ (Moose Juice)</span></div>
         </div>
         <div class="icard">
           <div class="icard-ttl">Live Conditions</div>
           <div class="irow"><span class="ilbl">Flow (Lowell)</span><span class="gv ival" id="gauge-panel">—</span></div>
-          <div class="irow"><span class="ilbl">Gauge site</span><span class="ival">#13336500</span></div>
+          <div class="irow"><span class="ilbl">Gauge site</span><span class="ival" id="trip-gauge-id">#13336500</span></div>
           <div id="flow-graph-wrap"><div class="irow"><span class="ilbl" style="color:var(--sage)">Loading graph…</span></div></div>
         </div>
         <div class="icard">
@@ -812,7 +922,7 @@
         <div class="icard">
           <div class="icard-ttl">Offline Maps</div>
           <div class="irow"><span class="ilbl">Status</span><span class="ival" id="offline-status">Not downloaded</span></div>
-          <div class="irow"><span class="ilbl">Coverage</span><span class="ival">Full 47.9 mi · z11–z14</span></div>
+          <div class="irow"><span class="ilbl">Coverage</span><span class="ival" id="offline-coverage">Full 47.9 mi · z11–z14</span></div>
           <div id="offline-prog-wrap" style="display:none;padding:8px 0 2px">
             <div class="prog-track"><div class="prog-bar" id="offline-prog-bar" style="width:0%"></div></div>
             <div class="prog-label">
@@ -826,7 +936,7 @@
           <div class="icard-ttl">About</div>
           <div class="irow"><span class="ilbl">Version</span><span class="ival">1.0.0</span></div>
           <div class="irow"><span class="ilbl">License</span><span class="ival">MIT open source</span></div>
-          <div class="irow"><span class="ilbl">POI data</span><span class="ival" style="font-size:11px">© Rivermaps LLC · Selway 2nd Ed.</span></div>
+          <div class="irow"><span class="ilbl">POI data</span><span class="ival" id="attr-poi" style="font-size:11px">© Rivermaps LLC · Selway 2nd Ed.</span></div>
           <div class="irow"><span class="ilbl">Flow data</span><span class="ival" style="font-size:11px">USGS · NOAA NWPS</span></div>
           <div class="irow"><span class="ilbl">Weather</span><span class="ival" style="font-size:11px">NOAA / NWS</span></div>
           <div class="irow"><span class="ilbl">Imagery</span><span class="ival" style="font-size:11px">© Esri, Maxar</span></div>
@@ -856,11 +966,23 @@
       <div id="rlog-hsub">Selway · Paradise → Race Creek · 47.9 mi</div>
     </div>
   </div>
-  <div id="rlog-scroll">
-    <div id="rlog-body">
-      <div style="color:var(--sage);font-size:13px;padding:40px;text-align:center">Loading…</div>
+  <div id="rlog-content-row">
+    <div id="rlog-scroll">
+      <div id="rlog-body">
+        <div style="color:var(--sage);font-size:13px;padding:40px;text-align:center">Loading…</div>
+      </div>
     </div>
+    <div id="rlog-profile-panel"></div>
   </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     GRAPH FULLSCREEN OVERLAY
+══════════════════════════════════════════════ -->
+<div id="graph-overlay" class="hidden">
+  <button id="graph-fs-close" onclick="closeGraphFullscreen()">✕</button>
+  <div id="graph-fs-title">Flow · 30 days ← now → 7-day forecast</div>
+  <div id="graph-fs-wrap"></div>
 </div>
 
 <div id="toast" role="status" aria-live="polite"></div>
