@@ -2,7 +2,7 @@
 
 A offline-first PWA river guide for three Idaho wilderness rivers.
 
-**Live:** https://itogeo.github.io/rivernight
+**Live:** https://rivernight.itogeospatial.com
 
 ---
 
