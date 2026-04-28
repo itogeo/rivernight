@@ -45,3 +45,7 @@ Requires Python 3 + `requests` (`conda install -n geodata requests -c conda-forg
 Static site — no server needed. Deploy to GitHub Pages, Netlify, or Cloudflare Pages from the repo root.
 
 Service worker pre-caches the app shell and all river GeoJSON on first load. Map tiles are cached as you browse.
+
+---
+
+[github.com/itogeo/rivernight](https://github.com/itogeo/rivernight)
