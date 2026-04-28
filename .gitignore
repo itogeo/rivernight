@@ -1,3 +1,10 @@
 .DS_Store
 __pycache__/
 rivermaps/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
